@@ -262,32 +262,14 @@ class XteamApp {
         if (!file) return;
 
         try {
-            const html5QrCode = new Html5Qrcode("qrReader", {
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.AZTEC,
-                    Html5QrcodeSupportedFormats.CODABAR,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX,
-                    Html5QrcodeSupportedFormats.MAXICODE,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.PDF_417,
-                    Html5QrcodeSupportedFormats.RSS_14,
-                    Html5QrcodeSupportedFormats.RSS_EXPANDED,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION
-                ]
-            });
+            // Use Html5QrcodeScanner for file scanning (supports more formats)
+            const html5QrCode = new Html5Qrcode("qrReader", /* verbose= */ false);
 
-            const decodedText = await html5QrCode.scanFile(file, true);
+            const decodedText = await html5QrCode.scanFile(file, /* showImage= */ true);
 
             document.getElementById('barcodeInput').value = decodedText;
             Notification.show(`Code detected from image: ${decodedText}`, 'success');
+            console.log('✓ Code detected from image:', decodedText);
 
             // Clear file input
             event.target.value = '';
@@ -314,27 +296,7 @@ class XteamApp {
 
             console.log('Found cameras:', cameras);
 
-            this.html5QrCode = new Html5Qrcode("qrReader", {
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.AZTEC,
-                    Html5QrcodeSupportedFormats.CODABAR,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX,
-                    Html5QrcodeSupportedFormats.MAXICODE,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.PDF_417,
-                    Html5QrcodeSupportedFormats.RSS_14,
-                    Html5QrcodeSupportedFormats.RSS_EXPANDED,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION
-                ]
-            });
+            this.html5QrCode = new Html5Qrcode("qrReader", /* verbose= */ false);
 
             const onScanSuccess = (decodedText, decodedResult) => {
                 console.log('✓ Code detected:', decodedText);
