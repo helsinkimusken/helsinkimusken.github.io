@@ -262,7 +262,28 @@ class XteamApp {
         if (!file) return;
 
         try {
-            const html5QrCode = new Html5Qrcode("qrReader");
+            const html5QrCode = new Html5Qrcode("qrReader", {
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.AZTEC,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX,
+                    Html5QrcodeSupportedFormats.MAXICODE,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.PDF_417,
+                    Html5QrcodeSupportedFormats.RSS_14,
+                    Html5QrcodeSupportedFormats.RSS_EXPANDED,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION
+                ]
+            });
+
             const decodedText = await html5QrCode.scanFile(file, true);
 
             document.getElementById('barcodeInput').value = decodedText;
@@ -272,7 +293,7 @@ class XteamApp {
             event.target.value = '';
         } catch (error) {
             console.error('Image scan error:', error);
-            Notification.show('No barcode/QR code found in image. Try camera scan or manual entry.', 'warning');
+            Notification.show('No barcode/QR code found in image. Please try camera scan or enter manually.', 'warning');
             event.target.value = '';
         }
     }
@@ -293,7 +314,27 @@ class XteamApp {
 
             console.log('Found cameras:', cameras);
 
-            this.html5QrCode = new Html5Qrcode("qrReader");
+            this.html5QrCode = new Html5Qrcode("qrReader", {
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.AZTEC,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX,
+                    Html5QrcodeSupportedFormats.MAXICODE,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.PDF_417,
+                    Html5QrcodeSupportedFormats.RSS_14,
+                    Html5QrcodeSupportedFormats.RSS_EXPANDED,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.UPC_EAN_EXTENSION
+                ]
+            });
 
             const onScanSuccess = (decodedText, decodedResult) => {
                 console.log('✓ Code detected:', decodedText);
@@ -307,11 +348,12 @@ class XteamApp {
                 // Scanning failures are normal, just ignore
             };
 
-            // Simplified config - less formats, better performance
+            // Config with all barcode formats enabled
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                aspectRatio: 1.0,
+                disableFlip: false
             };
 
             // Use the first available camera (usually rear on mobile)
