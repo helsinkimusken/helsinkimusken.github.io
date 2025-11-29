@@ -143,7 +143,7 @@ class XteamApp {
             folders: [],
             archives: []
         };
-        this.html5QrCode = null;
+        this.codeReader = new ZXing.BrowserMultiFormatReader();
         this.init();
     }
 
@@ -262,20 +262,26 @@ class XteamApp {
         if (!file) return;
 
         try {
-            // Use Html5QrcodeScanner for file scanning (supports more formats)
-            const html5QrCode = new Html5Qrcode("qrReader", /* verbose= */ false);
+            const reader = new FileReader();
+            reader.onload = async (e) => {
+                try {
+                    const result = await this.codeReader.decodeFromImageUrl(e.target.result);
+                    const decodedText = result.getText();
+                    const format = result.getBarcodeFormat();
 
-            const decodedText = await html5QrCode.scanFile(file, /* showImage= */ true);
-
-            document.getElementById('barcodeInput').value = decodedText;
-            Notification.show(`Code detected from image: ${decodedText}`, 'success');
-            console.log('✓ Code detected from image:', decodedText);
-
-            // Clear file input
-            event.target.value = '';
+                    document.getElementById('barcodeInput').value = decodedText;
+                    Notification.show(`${format} detected from image: ${decodedText}`, 'success');
+                    console.log('✓ Code detected from image:', decodedText);
+                } catch (error) {
+                    console.error('Image scan error:', error);
+                    Notification.show('No barcode/QR code found in image. Please try camera scan or enter manually.', 'warning');
+                }
+                event.target.value = '';
+            };
+            reader.readAsDataURL(file);
         } catch (error) {
-            console.error('Image scan error:', error);
-            Notification.show('No barcode/QR code found in image. Please try camera scan or enter manually.', 'warning');
+            console.error('File read error:', error);
+            Notification.show('Error reading file. Please try again.', 'error');
             event.target.value = '';
         }
     }
@@ -283,70 +289,69 @@ class XteamApp {
     async startScanner() {
         const scannerContainer = document.getElementById('scannerContainer');
         const scanButton = document.getElementById('scanButton');
+        const videoElement = document.getElementById('scannerVideo');
 
         scannerContainer.style.display = 'block';
         scanButton.disabled = true;
 
         try {
-            // Check for camera availability first
-            const cameras = await Html5Qrcode.getCameras();
-            if (!cameras || cameras.length === 0) {
-                throw new Error('No cameras found');
-            }
+            console.log('Starting camera scanner...');
 
-            console.log('Found cameras:', cameras);
+            // Request camera permission first
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: { ideal: 'environment' },
+                    width: { ideal: 1280 },
+                    height: { ideal: 720 }
+                }
+            });
 
-            this.html5QrCode = new Html5Qrcode("qrReader", /* verbose= */ false);
+            console.log('Camera permission granted');
 
-            const onScanSuccess = (decodedText, decodedResult) => {
-                console.log('✓ Code detected:', decodedText);
-                document.getElementById('barcodeInput').value = decodedText;
-                const format = decodedResult?.result?.format?.formatName || 'Code';
-                Notification.show(`${format} detected: ${decodedText}`, 'success');
-                this.stopScanner();
-            };
+            // Get device ID
+            const track = stream.getVideoTracks()[0];
+            const settings = track.getSettings();
+            const deviceId = settings.deviceId;
 
-            const onScanFailure = (error) => {
-                // Scanning failures are normal, just ignore
-            };
+            // Stop temporary stream
+            stream.getTracks().forEach(t => t.stop());
 
-            // Config with all barcode formats enabled
-            const config = {
-                fps: 10,
-                qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0,
-                disableFlip: false
-            };
+            console.log('Using camera:', deviceId);
 
-            // Use the first available camera (usually rear on mobile)
-            const cameraId = cameras[cameras.length - 1].id; // Last camera is usually rear
+            // Start ZXing decoder
+            await this.codeReader.decodeFromVideoDevice(deviceId, videoElement, (result, error) => {
+                if (result) {
+                    const decodedText = result.getText();
+                    const format = result.getBarcodeFormat();
 
-            await this.html5QrCode.start(
-                cameraId,
-                config,
-                onScanSuccess,
-                onScanFailure
-            );
+                    console.log('✓ Code detected:', decodedText);
+                    document.getElementById('barcodeInput').value = decodedText;
+                    Notification.show(`${format} detected: ${decodedText}`, 'success');
+
+                    this.stopScanner();
+                }
+                // Ignore NotFoundException errors (normal during scanning)
+                if (error && !(error instanceof ZXing.NotFoundException)) {
+                    console.error('Decode error:', error);
+                }
+            });
 
             console.log('✓ Scanner started successfully');
-            Notification.show('Scanner active! Hold code steady in the frame', 'success');
+            Notification.show('Scanner active! Point at barcode or QR code', 'success');
 
         } catch (error) {
             console.error('Scanner start error:', error);
-            Notification.show(`Scanner error: ${error.message}. Try image upload or manual entry.`, 'error');
+            Notification.show(`Camera error: ${error.message}. Try image upload or manual entry.`, 'error');
             this.stopScanner();
         }
     }
 
     async stopScanner() {
-        if (this.html5QrCode) {
-            try {
-                await this.html5QrCode.stop();
-                await this.html5QrCode.clear();
-            } catch (error) {
-                console.error('Error stopping scanner:', error);
-            }
-            this.html5QrCode = null;
+        try {
+            this.codeReader.reset();
+            console.log('Scanner stopped');
+        } catch (error) {
+            console.error('Error stopping scanner:', error);
         }
 
         document.getElementById('scannerContainer').style.display = 'none';

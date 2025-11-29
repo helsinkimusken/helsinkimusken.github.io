@@ -36,7 +36,7 @@
                         <input type="file" id="codeImageUpload" accept="image/*" hidden>
                     </div>
                     <div id="scannerContainer" style="display: none;">
-                        <div id="qrReader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                        <video id="scannerVideo" autoplay playsinline style="width: 100%; max-width: 500px; margin: 0 auto; display: block; border-radius: 8px;"></video>
                         <button id="closeScannerButton" class="btn btn-danger" style="margin-top: 10px;">Close Scanner</button>
                     </div>
                     <input type="text" id="barcodeInput" placeholder="Scanned code will appear here (or type manually)">
@@ -152,7 +152,7 @@
         </footer>
     </div>
 
-    <script src="https://unpkg.com/html5-qrcode"></script>
+    <script src="https://unpkg.com/@zxing/library@0.20.0/umd/index.min.js"></script>
     <script src="app.js"></script>
 </body>
 </html>
