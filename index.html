@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xteam - Cross-Team Coordination System</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Xteam Coordination System</h1>
+            <p class="subtitle">Cross-Team Information Sharing & Tracking</p>
+        </header>
+
+        <main>
+            <div class="upload-section">
+                <h2>Submit Information</h2>
+
+                <!-- Text Input -->
+                <div class="input-group">
+                    <label for="textInput">Text Input</label>
+                    <textarea id="textInput" placeholder="Enter your text, notes, or comments..."></textarea>
+                </div>
+
+                <!-- Barcode/QR Code Scanner -->
+                <div class="input-group">
+                    <label>Barcode / QR Code Scanner</label>
+                    <button id="scanButton" class="btn btn-secondary">
+                        <span class="icon">📷</span> Scan Barcode/QR Code
+                    </button>
+                    <div id="scannerContainer" style="display: none;">
+                        <video id="scannerVideo" autoplay></video>
+                        <button id="closeScannerButton" class="btn btn-danger">Close Scanner</button>
+                    </div>
+                    <input type="text" id="barcodeInput" placeholder="Scanned barcode/QR code will appear here" readonly>
+                </div>
+
+                <!-- Photo Upload -->
+                <div class="input-group">
+                    <label for="photoUpload">Upload Photos</label>
+                    <div class="file-upload-area" id="photoDropZone">
+                        <input type="file" id="photoUpload" accept="image/*" multiple hidden>
+                        <p>Drag & drop photos here or click to browse</p>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('photoUpload').click()">
+                            <span class="icon">📸</span> Choose Photos
+                        </button>
+                    </div>
+                    <div id="photoPreview" class="file-preview"></div>
+                </div>
+
+                <!-- File Upload -->
+                <div class="input-group">
+                    <label for="fileUpload">Upload Files</label>
+                    <div class="file-upload-area" id="fileDropZone">
+                        <input type="file" id="fileUpload" multiple hidden>
+                        <p>Drag & drop files here or click to browse</p>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('fileUpload').click()">
+                            <span class="icon">📄</span> Choose Files
+                        </button>
+                    </div>
+                    <div id="filePreview" class="file-preview"></div>
+                </div>
+
+                <!-- Folder Upload -->
+                <div class="input-group">
+                    <label for="folderUpload">Upload Folder</label>
+                    <div class="file-upload-area">
+                        <input type="file" id="folderUpload" webkitdirectory directory multiple hidden>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('folderUpload').click()">
+                            <span class="icon">📁</span> Choose Folder
+                        </button>
+                    </div>
+                    <div id="folderPreview" class="file-preview"></div>
+                </div>
+
+                <!-- Archive Upload (ZIP/RAR) -->
+                <div class="input-group">
+                    <label for="archiveUpload">Upload Archive (ZIP/RAR)</label>
+                    <div class="file-upload-area" id="archiveDropZone">
+                        <input type="file" id="archiveUpload" accept=".zip,.rar,.7z,.tar,.gz" multiple hidden>
+                        <p>Drag & drop archives here or click to browse</p>
+                        <button type="button" class="btn btn-secondary" onclick="document.getElementById('archiveUpload').click()">
+                            <span class="icon">🗜️</span> Choose Archive
+                        </button>
+                    </div>
+                    <div id="archivePreview" class="file-preview"></div>
+                </div>
+
+                <!-- Metadata -->
+                <div class="input-group">
+                    <label for="userName">Your Name</label>
+                    <input type="text" id="userName" placeholder="Enter your name">
+                </div>
+
+                <div class="input-group">
+                    <label for="category">Category</label>
+                    <select id="category">
+                        <option value="">Select category...</option>
+                        <option value="vendor-performance">Vendor Performance</option>
+                        <option value="cross-team-issue">Cross-Team Issue</option>
+                        <option value="quality-report">Quality Report</option>
+                        <option value="delay-report">Delay Report</option>
+                        <option value="achievement">Achievement</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+
+                <div class="button-group">
+                    <button id="submitButton" class="btn btn-primary">
+                        <span class="icon">✓</span> Submit Information
+                    </button>
+                    <button id="clearButton" class="btn btn-secondary">
+                        <span class="icon">✗</span> Clear Form
+                    </button>
+                </div>
+            </div>
+
+            <div class="data-section">
+                <div class="section-header">
+                    <h2>Submitted Records</h2>
+                    <div class="filter-controls">
+                        <select id="filterCategory">
+                            <option value="">All Categories</option>
+                            <option value="vendor-performance">Vendor Performance</option>
+                            <option value="cross-team-issue">Cross-Team Issue</option>
+                            <option value="quality-report">Quality Report</option>
+                            <option value="delay-report">Delay Report</option>
+                            <option value="achievement">Achievement</option>
+                            <option value="other">Other</option>
+                        </select>
+                        <button id="exportButton" class="btn btn-secondary">
+                            <span class="icon">💾</span> Export Data
+                        </button>
+                        <button id="clearAllButton" class="btn btn-danger">
+                            <span class="icon">🗑️</span> Clear All Data
+                        </button>
+                    </div>
+                </div>
+                <div id="recordsList" class="records-list"></div>
+            </div>
+        </main>
+
+        <footer>
+            <p>Xteam Coordination System &copy; 2025</p>
+        </footer>
+    </div>
+
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
