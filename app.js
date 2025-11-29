@@ -265,37 +265,94 @@ class XteamApp {
             this.html5QrCode = new Html5Qrcode("qrReader");
 
             const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                console.log('Code detected:', decodedText, decodedResult);
                 document.getElementById('barcodeInput').value = decodedText;
-                Notification.show('Code scanned successfully!', 'success');
+                Notification.show(`${decodedResult.result.format?.formatName || 'Code'} scanned: ${decodedText}`, 'success');
                 this.stopScanner();
+            };
+
+            const qrCodeErrorCallback = (errorMessage) => {
+                // Errors during scanning are normal, we can ignore them
+                // Only log occasionally to avoid console spam
+                if (Math.random() < 0.01) {
+                    console.log('Scanning...', errorMessage);
+                }
             };
 
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                aspectRatio: 1.0
+                // Enable all supported formats for better barcode detection
+                formatsToSupport: [
+                    Html5QrcodeSupportedFormats.QR_CODE,
+                    Html5QrcodeSupportedFormats.UPC_A,
+                    Html5QrcodeSupportedFormats.UPC_E,
+                    Html5QrcodeSupportedFormats.EAN_13,
+                    Html5QrcodeSupportedFormats.EAN_8,
+                    Html5QrcodeSupportedFormats.CODE_128,
+                    Html5QrcodeSupportedFormats.CODE_39,
+                    Html5QrcodeSupportedFormats.CODE_93,
+                    Html5QrcodeSupportedFormats.CODABAR,
+                    Html5QrcodeSupportedFormats.ITF,
+                    Html5QrcodeSupportedFormats.AZTEC,
+                    Html5QrcodeSupportedFormats.DATA_MATRIX,
+                    Html5QrcodeSupportedFormats.PDF_417
+                ],
+                // Use higher resolution for better detection
+                aspectRatio: 1.777778  // 16:9
             };
 
-            // Try to get camera permissions and start scanning
+            // Try to get camera list first
+            const devices = await Html5Qrcode.getCameras();
+            if (!devices || devices.length === 0) {
+                throw new Error('No cameras found on this device');
+            }
+
+            console.log('Available cameras:', devices);
+
+            // Try rear camera first (better for scanning)
             await this.html5QrCode.start(
                 { facingMode: "environment" },
                 config,
-                qrCodeSuccessCallback
+                qrCodeSuccessCallback,
+                qrCodeErrorCallback
             );
+
+            Notification.show('Scanner ready! Point camera at QR code or barcode', 'success');
         } catch (error) {
             console.error('Scanner error:', error);
 
             // If environment camera fails, try any available camera
             try {
+                const config2 = {
+                    fps: 10,
+                    qrbox: { width: 250, height: 250 },
+                    formatsToSupport: [
+                        Html5QrcodeSupportedFormats.QR_CODE,
+                        Html5QrcodeSupportedFormats.UPC_A,
+                        Html5QrcodeSupportedFormats.UPC_E,
+                        Html5QrcodeSupportedFormats.EAN_13,
+                        Html5QrcodeSupportedFormats.EAN_8,
+                        Html5QrcodeSupportedFormats.CODE_128,
+                        Html5QrcodeSupportedFormats.CODE_39
+                    ]
+                };
+
                 await this.html5QrCode.start(
                     { facingMode: "user" },
-                    { fps: 10, qrbox: { width: 250, height: 250 } },
-                    (decodedText) => {
+                    config2,
+                    (decodedText, decodedResult) => {
+                        console.log('Code detected:', decodedText);
                         document.getElementById('barcodeInput').value = decodedText;
                         Notification.show('Code scanned successfully!', 'success');
                         this.stopScanner();
+                    },
+                    (errorMessage) => {
+                        // Ignore scanning errors
                     }
                 );
+
+                Notification.show('Scanner ready! Point camera at QR code or barcode', 'success');
             } catch (fallbackError) {
                 console.error('Fallback scanner error:', fallbackError);
                 Notification.show('Camera access denied or not available. Please check browser permissions.', 'error');
