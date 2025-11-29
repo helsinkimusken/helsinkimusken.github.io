@@ -176,6 +176,9 @@ class XteamApp {
         document.getElementById('scanButton').addEventListener('click', () => this.startScanner());
         document.getElementById('closeScannerButton').addEventListener('click', () => this.stopScanner());
 
+        // Image upload for code scanning
+        document.getElementById('codeImageUpload').addEventListener('change', (e) => this.scanImageFile(e));
+
         // Filter
         document.getElementById('filterCategory').addEventListener('change', (e) => this.filterRecords(e.target.value));
 
@@ -254,110 +257,80 @@ class XteamApp {
         }
     }
 
+    async scanImageFile(event) {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        try {
+            const html5QrCode = new Html5Qrcode("qrReader");
+            const decodedText = await html5QrCode.scanFile(file, true);
+
+            document.getElementById('barcodeInput').value = decodedText;
+            Notification.show(`Code detected from image: ${decodedText}`, 'success');
+
+            // Clear file input
+            event.target.value = '';
+        } catch (error) {
+            console.error('Image scan error:', error);
+            Notification.show('No barcode/QR code found in image. Try camera scan or manual entry.', 'warning');
+            event.target.value = '';
+        }
+    }
+
     async startScanner() {
         const scannerContainer = document.getElementById('scannerContainer');
         const scanButton = document.getElementById('scanButton');
 
         scannerContainer.style.display = 'block';
-        scanButton.style.display = 'none';
+        scanButton.disabled = true;
 
         try {
+            // Check for camera availability first
+            const cameras = await Html5Qrcode.getCameras();
+            if (!cameras || cameras.length === 0) {
+                throw new Error('No cameras found');
+            }
+
+            console.log('Found cameras:', cameras);
+
             this.html5QrCode = new Html5Qrcode("qrReader");
 
-            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                console.log('Code detected:', decodedText, decodedResult);
+            const onScanSuccess = (decodedText, decodedResult) => {
+                console.log('✓ Code detected:', decodedText);
                 document.getElementById('barcodeInput').value = decodedText;
-                Notification.show(`${decodedResult.result.format?.formatName || 'Code'} scanned: ${decodedText}`, 'success');
+                const format = decodedResult?.result?.format?.formatName || 'Code';
+                Notification.show(`${format} detected: ${decodedText}`, 'success');
                 this.stopScanner();
             };
 
-            const qrCodeErrorCallback = (errorMessage) => {
-                // Errors during scanning are normal, we can ignore them
-                // Only log occasionally to avoid console spam
-                if (Math.random() < 0.01) {
-                    console.log('Scanning...', errorMessage);
-                }
+            const onScanFailure = (error) => {
+                // Scanning failures are normal, just ignore
             };
 
+            // Simplified config - less formats, better performance
             const config = {
                 fps: 10,
                 qrbox: { width: 250, height: 250 },
-                // Enable all supported formats for better barcode detection
-                formatsToSupport: [
-                    Html5QrcodeSupportedFormats.QR_CODE,
-                    Html5QrcodeSupportedFormats.UPC_A,
-                    Html5QrcodeSupportedFormats.UPC_E,
-                    Html5QrcodeSupportedFormats.EAN_13,
-                    Html5QrcodeSupportedFormats.EAN_8,
-                    Html5QrcodeSupportedFormats.CODE_128,
-                    Html5QrcodeSupportedFormats.CODE_39,
-                    Html5QrcodeSupportedFormats.CODE_93,
-                    Html5QrcodeSupportedFormats.CODABAR,
-                    Html5QrcodeSupportedFormats.ITF,
-                    Html5QrcodeSupportedFormats.AZTEC,
-                    Html5QrcodeSupportedFormats.DATA_MATRIX,
-                    Html5QrcodeSupportedFormats.PDF_417
-                ],
-                // Use higher resolution for better detection
-                aspectRatio: 1.777778  // 16:9
+                aspectRatio: 1.0
             };
 
-            // Try to get camera list first
-            const devices = await Html5Qrcode.getCameras();
-            if (!devices || devices.length === 0) {
-                throw new Error('No cameras found on this device');
-            }
+            // Use the first available camera (usually rear on mobile)
+            const cameraId = cameras[cameras.length - 1].id; // Last camera is usually rear
 
-            console.log('Available cameras:', devices);
-
-            // Try rear camera first (better for scanning)
             await this.html5QrCode.start(
-                { facingMode: "environment" },
+                cameraId,
                 config,
-                qrCodeSuccessCallback,
-                qrCodeErrorCallback
+                onScanSuccess,
+                onScanFailure
             );
 
-            Notification.show('Scanner ready! Point camera at QR code or barcode', 'success');
+            console.log('✓ Scanner started successfully');
+            Notification.show('Scanner active! Hold code steady in the frame', 'success');
+
         } catch (error) {
-            console.error('Scanner error:', error);
-
-            // If environment camera fails, try any available camera
-            try {
-                const config2 = {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 },
-                    formatsToSupport: [
-                        Html5QrcodeSupportedFormats.QR_CODE,
-                        Html5QrcodeSupportedFormats.UPC_A,
-                        Html5QrcodeSupportedFormats.UPC_E,
-                        Html5QrcodeSupportedFormats.EAN_13,
-                        Html5QrcodeSupportedFormats.EAN_8,
-                        Html5QrcodeSupportedFormats.CODE_128,
-                        Html5QrcodeSupportedFormats.CODE_39
-                    ]
-                };
-
-                await this.html5QrCode.start(
-                    { facingMode: "user" },
-                    config2,
-                    (decodedText, decodedResult) => {
-                        console.log('Code detected:', decodedText);
-                        document.getElementById('barcodeInput').value = decodedText;
-                        Notification.show('Code scanned successfully!', 'success');
-                        this.stopScanner();
-                    },
-                    (errorMessage) => {
-                        // Ignore scanning errors
-                    }
-                );
-
-                Notification.show('Scanner ready! Point camera at QR code or barcode', 'success');
-            } catch (fallbackError) {
-                console.error('Fallback scanner error:', fallbackError);
-                Notification.show('Camera access denied or not available. Please check browser permissions.', 'error');
-                this.stopScanner();
-            }
+            console.error('Scanner start error:', error);
+            Notification.show(`Scanner error: ${error.message}. Try image upload or manual entry.`, 'error');
+            this.stopScanner();
         }
     }
 
@@ -365,13 +338,15 @@ class XteamApp {
         if (this.html5QrCode) {
             try {
                 await this.html5QrCode.stop();
+                await this.html5QrCode.clear();
             } catch (error) {
                 console.error('Error stopping scanner:', error);
             }
+            this.html5QrCode = null;
         }
 
         document.getElementById('scannerContainer').style.display = 'none';
-        document.getElementById('scanButton').style.display = 'inline-flex';
+        document.getElementById('scanButton').disabled = false;
     }
 
     async submitRecord() {

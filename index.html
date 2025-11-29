@@ -25,15 +25,21 @@
 
                 <!-- Barcode/QR Code Scanner -->
                 <div class="input-group">
-                    <label>Barcode / QR Code Scanner</label>
-                    <button id="scanButton" class="btn btn-secondary">
-                        <span class="icon">📷</span> Scan Barcode/QR Code
-                    </button>
+                    <label>Barcode / QR Code</label>
+                    <div style="display: flex; gap: 10px; margin-bottom: 10px; flex-wrap: wrap;">
+                        <button id="scanButton" class="btn btn-secondary">
+                            <span class="icon">📷</span> Scan with Camera
+                        </button>
+                        <button id="uploadCodeButton" class="btn btn-secondary" onclick="document.getElementById('codeImageUpload').click()">
+                            <span class="icon">🖼️</span> Upload Image
+                        </button>
+                        <input type="file" id="codeImageUpload" accept="image/*" hidden>
+                    </div>
                     <div id="scannerContainer" style="display: none;">
                         <div id="qrReader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
                         <button id="closeScannerButton" class="btn btn-danger" style="margin-top: 10px;">Close Scanner</button>
                     </div>
-                    <input type="text" id="barcodeInput" placeholder="Scanned barcode/QR code will appear here" readonly>
+                    <input type="text" id="barcodeInput" placeholder="Scanned code will appear here (or type manually)">
                 </div>
 
                 <!-- Photo Upload -->
