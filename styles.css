@@ -232,14 +232,17 @@ h2 {
 #scannerContainer {
     margin: 15px 0;
     position: relative;
+    text-align: center;
 }
 
-#scannerVideo {
-    width: 100%;
-    max-width: 500px;
+#qrReader {
     border-radius: 8px;
-    display: block;
-    margin: 0 auto 10px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+#qrReader video {
+    border-radius: 8px;
 }
 
 .section-header {

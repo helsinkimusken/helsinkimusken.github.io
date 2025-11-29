@@ -30,8 +30,8 @@
                         <span class="icon">📷</span> Scan Barcode/QR Code
                     </button>
                     <div id="scannerContainer" style="display: none;">
-                        <video id="scannerVideo" autoplay></video>
-                        <button id="closeScannerButton" class="btn btn-danger">Close Scanner</button>
+                        <div id="qrReader" style="width: 100%; max-width: 500px; margin: 0 auto;"></div>
+                        <button id="closeScannerButton" class="btn btn-danger" style="margin-top: 10px;">Close Scanner</button>
                     </div>
                     <input type="text" id="barcodeInput" placeholder="Scanned barcode/QR code will appear here" readonly>
                 </div>

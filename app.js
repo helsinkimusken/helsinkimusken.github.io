@@ -262,27 +262,45 @@ class XteamApp {
         scanButton.style.display = 'none';
 
         try {
-            this.html5QrCode = new Html5Qrcode("scannerVideo");
+            this.html5QrCode = new Html5Qrcode("qrReader");
 
+            const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                document.getElementById('barcodeInput').value = decodedText;
+                Notification.show('Code scanned successfully!', 'success');
+                this.stopScanner();
+            };
+
+            const config = {
+                fps: 10,
+                qrbox: { width: 250, height: 250 },
+                aspectRatio: 1.0
+            };
+
+            // Try to get camera permissions and start scanning
             await this.html5QrCode.start(
                 { facingMode: "environment" },
-                {
-                    fps: 10,
-                    qrbox: { width: 250, height: 250 }
-                },
-                (decodedText) => {
-                    document.getElementById('barcodeInput').value = decodedText;
-                    Notification.show('Code scanned successfully!', 'success');
-                    this.stopScanner();
-                },
-                (errorMessage) => {
-                    // Scanning errors are normal, ignore them
-                }
+                config,
+                qrCodeSuccessCallback
             );
         } catch (error) {
             console.error('Scanner error:', error);
-            Notification.show('Failed to start scanner. Please check camera permissions.', 'error');
-            this.stopScanner();
+
+            // If environment camera fails, try any available camera
+            try {
+                await this.html5QrCode.start(
+                    { facingMode: "user" },
+                    { fps: 10, qrbox: { width: 250, height: 250 } },
+                    (decodedText) => {
+                        document.getElementById('barcodeInput').value = decodedText;
+                        Notification.show('Code scanned successfully!', 'success');
+                        this.stopScanner();
+                    }
+                );
+            } catch (fallbackError) {
+                console.error('Fallback scanner error:', fallbackError);
+                Notification.show('Camera access denied or not available. Please check browser permissions.', 'error');
+                this.stopScanner();
+            }
         }
     }
 
