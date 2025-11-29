@@ -133,6 +133,34 @@ class Notification {
     }
 }
 
+// Audio beep for barcode detection
+let audioContext = null;
+function playBeep() {
+    try {
+        if (!audioContext) {
+            audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        }
+
+        const oscillator = audioContext.createOscillator();
+        const gainNode = audioContext.createGain();
+
+        oscillator.connect(gainNode);
+        gainNode.connect(audioContext.destination);
+
+        // Beep frequency and duration
+        oscillator.frequency.value = 1200; // Hz
+        oscillator.type = 'square';
+
+        gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+
+        oscillator.start(audioContext.currentTime);
+        oscillator.stop(audioContext.currentTime + 0.1);
+    } catch (error) {
+        console.error('Error playing beep:', error);
+    }
+}
+
 // Main Application
 class XteamApp {
     constructor() {
@@ -269,6 +297,14 @@ class XteamApp {
                     const decodedText = result.getText();
                     const format = result.getBarcodeFormat();
 
+                    // Play beep sound
+                    playBeep();
+
+                    // Vibrate if supported (mobile devices)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(200);
+                    }
+
                     document.getElementById('barcodeInput').value = decodedText;
                     Notification.show(`${format} detected from image: ${decodedText}`, 'success');
                     console.log('✓ Code detected from image:', decodedText);
@@ -325,6 +361,15 @@ class XteamApp {
                     const format = result.getBarcodeFormat();
 
                     console.log('✓ Code detected:', decodedText);
+
+                    // Play beep sound
+                    playBeep();
+
+                    // Vibrate if supported (mobile devices)
+                    if (navigator.vibrate) {
+                        navigator.vibrate(200);
+                    }
+
                     document.getElementById('barcodeInput').value = decodedText;
                     Notification.show(`${format} detected: ${decodedText}`, 'success');
 
@@ -444,6 +489,7 @@ class XteamApp {
                 : records;
 
             this.displayRecords(filteredRecords.reverse()); // Show newest first
+            this.updateDashboard(records); // Update dashboard with all records
         } catch (error) {
             console.error('Error loading records:', error);
             Notification.show('Failed to load records', 'error');
@@ -608,6 +654,189 @@ class XteamApp {
             console.error('Error clearing data:', error);
             Notification.show('Failed to clear data', 'error');
         }
+    }
+
+    updateDashboard(records) {
+        // Calculate statistics
+        const total = records.length;
+        const now = new Date();
+        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+
+        const todayCount = records.filter(r => new Date(r.timestamp) >= today).length;
+        const weekCount = records.filter(r => new Date(r.timestamp) >= weekAgo).length;
+        const uniqueUsers = [...new Set(records.map(r => r.userName))].length;
+
+        // Update stats
+        document.getElementById('totalRecords').textContent = total;
+        document.getElementById('todayRecords').textContent = todayCount;
+        document.getElementById('weekRecords').textContent = weekCount;
+        document.getElementById('activeUsers').textContent = uniqueUsers;
+
+        // Update charts
+        this.updateCategoryChart(records);
+        this.updateUserChart(records);
+        this.updateTimelineChart(records);
+    }
+
+    updateCategoryChart(records) {
+        const categoryCounts = {};
+        const categories = ['vendor-performance', 'cross-team-issue', 'quality-report', 'delay-report', 'achievement', 'other'];
+        const categoryLabels = {
+            'vendor-performance': 'Vendor Performance',
+            'cross-team-issue': 'Cross-Team Issue',
+            'quality-report': 'Quality Report',
+            'delay-report': 'Delay Report',
+            'achievement': 'Achievement',
+            'other': 'Other'
+        };
+
+        categories.forEach(cat => categoryCounts[cat] = 0);
+        records.forEach(r => {
+            if (categoryCounts[r.category] !== undefined) {
+                categoryCounts[r.category]++;
+            }
+        });
+
+        this.drawPieChart('categoryChart', categoryCounts, categoryLabels, 'categoryLegend');
+    }
+
+    updateUserChart(records) {
+        const userCounts = {};
+        records.forEach(r => {
+            userCounts[r.userName] = (userCounts[r.userName] || 0) + 1;
+        });
+
+        // Top 5 users
+        const topUsers = Object.entries(userCounts)
+            .sort((a, b) => b[1] - a[1])
+            .slice(0, 5)
+            .reduce((obj, [key, value]) => ({ ...obj, [key]: value }), {});
+
+        this.drawPieChart('userChart', topUsers, topUsers, 'userLegend');
+    }
+
+    updateTimelineChart(records) {
+        const last7Days = {};
+        const now = new Date();
+
+        // Initialize last 7 days
+        for (let i = 6; i >= 0; i--) {
+            const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+            const dateStr = date.toISOString().split('T')[0];
+            last7Days[dateStr] = 0;
+        }
+
+        // Count records per day
+        records.forEach(r => {
+            const dateStr = r.timestamp.split('T')[0];
+            if (last7Days[dateStr] !== undefined) {
+                last7Days[dateStr]++;
+            }
+        });
+
+        this.drawBarChart('timelineChart', last7Days);
+    }
+
+    drawPieChart(canvasId, data, labels, legendId) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+        const legend = document.getElementById(legendId);
+
+        canvas.width = 300;
+        canvas.height = 300;
+
+        const colors = [
+            '#2563eb', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#ec4899', '#14b8a6'
+        ];
+
+        const total = Object.values(data).reduce((a, b) => a + b, 0);
+        if (total === 0) {
+            ctx.fillStyle = '#94a3b8';
+            ctx.textAlign = 'center';
+            ctx.font = '14px sans-serif';
+            ctx.fillText('No data', canvas.width / 2, canvas.height / 2);
+            return;
+        }
+
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        const radius = Math.min(centerX, centerY) - 10;
+
+        let startAngle = -Math.PI / 2;
+        legend.innerHTML = '';
+
+        Object.entries(data).forEach(([key, value], index) => {
+            if (value === 0) return;
+
+            const sliceAngle = (value / total) * 2 * Math.PI;
+            const endAngle = startAngle + sliceAngle;
+
+            // Draw slice
+            ctx.fillStyle = colors[index % colors.length];
+            ctx.beginPath();
+            ctx.moveTo(centerX, centerY);
+            ctx.arc(centerX, centerY, radius, startAngle, endAngle);
+            ctx.closePath();
+            ctx.fill();
+
+            // Draw border
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            startAngle = endAngle;
+
+            // Add legend
+            const legendItem = document.createElement('div');
+            legendItem.className = 'legend-item';
+            legendItem.innerHTML = `
+                <div class="legend-color" style="background-color: ${colors[index % colors.length]}"></div>
+                <span>${labels[key] || key}: ${value} (${Math.round(value / total * 100)}%)</span>
+            `;
+            legend.appendChild(legendItem);
+        });
+    }
+
+    drawBarChart(canvasId, data) {
+        const canvas = document.getElementById(canvasId);
+        const ctx = canvas.getContext('2d');
+
+        canvas.width = canvas.parentElement.clientWidth - 50;
+        canvas.height = 300;
+
+        const entries = Object.entries(data);
+        const maxValue = Math.max(...Object.values(data), 1);
+        const barWidth = canvas.width / entries.length - 10;
+        const barMaxHeight = canvas.height - 60;
+
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        entries.forEach(([date, value], index) => {
+            const x = index * (barWidth + 10) + 20;
+            const barHeight = (value / maxValue) * barMaxHeight;
+            const y = canvas.height - barHeight - 40;
+
+            // Draw bar
+            ctx.fillStyle = '#2563eb';
+            ctx.fillRect(x, y, barWidth, barHeight);
+
+            // Draw value on top
+            ctx.fillStyle = '#1e293b';
+            ctx.font = '12px sans-serif';
+            ctx.textAlign = 'center';
+            ctx.fillText(value, x + barWidth / 2, y - 5);
+
+            // Draw date label
+            const dateLabel = new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            ctx.fillStyle = '#64748b';
+            ctx.font = '11px sans-serif';
+            ctx.save();
+            ctx.translate(x + barWidth / 2, canvas.height - 10);
+            ctx.rotate(-Math.PI / 6);
+            ctx.fillText(dateLabel, 0, 0);
+            ctx.restore();
+        });
     }
 }
 
