@@ -1,24 +1,49 @@
-// IndexedDB Database Management
+// Firebase Database Management
 class XteamDB {
     constructor() {
-        this.dbName = 'XteamDB';
-        this.version = 1;
         this.db = null;
+        this.recordsRef = null;
+        this.useFirebase = false;
     }
 
     async init() {
+        try {
+            // Check if Firebase is configured
+            if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
+                // Initialize Firebase
+                if (!firebase.apps.length) {
+                    firebase.initializeApp(firebaseConfig);
+                }
+                this.db = firebase.database();
+                this.recordsRef = this.db.ref('records');
+                this.useFirebase = true;
+                console.log('✓ Firebase initialized successfully');
+
+                // Set up real-time listener
+                this.setupRealtimeListener();
+            } else {
+                console.warn('Firebase not configured. Using local IndexedDB only.');
+                await this.initIndexedDB();
+            }
+        } catch (error) {
+            console.error('Firebase initialization error:', error);
+            console.warn('Falling back to IndexedDB');
+            await this.initIndexedDB();
+        }
+    }
+
+    async initIndexedDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open(this.dbName, this.version);
+            const request = indexedDB.open('XteamDB', 1);
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
-                this.db = request.result;
-                resolve(this.db);
+                this.localDB = request.result;
+                resolve();
             };
 
             request.onupgradeneeded = (event) => {
                 const db = event.target.result;
-
                 if (!db.objectStoreNames.contains('records')) {
                     const objectStore = db.createObjectStore('records', { keyPath: 'id', autoIncrement: true });
                     objectStore.createIndex('timestamp', 'timestamp', { unique: false });
@@ -29,48 +54,91 @@ class XteamDB {
         });
     }
 
-    async addRecord(record) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['records'], 'readwrite');
-            const objectStore = transaction.objectStore('records');
-            const request = objectStore.add(record);
+    setupRealtimeListener() {
+        if (!this.useFirebase) return;
 
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
+        // Listen for new records
+        this.recordsRef.on('value', (snapshot) => {
+            if (window.xteamApp) {
+                // Trigger UI update
+                window.xteamApp.onDataChanged();
+            }
         });
+    }
+
+    async addRecord(record) {
+        if (this.useFirebase) {
+            // Add to Firebase with auto-generated key
+            const newRecordRef = this.recordsRef.push();
+            record.id = newRecordRef.key;
+            await newRecordRef.set(record);
+            console.log('✓ Record saved to Firebase');
+            return record.id;
+        } else {
+            // Fallback to IndexedDB
+            return new Promise((resolve, reject) => {
+                const transaction = this.localDB.transaction(['records'], 'readwrite');
+                const objectStore = transaction.objectStore('records');
+                const request = objectStore.add(record);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
     }
 
     async getAllRecords() {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['records'], 'readonly');
-            const objectStore = transaction.objectStore('records');
-            const request = objectStore.getAll();
-
-            request.onsuccess = () => resolve(request.result);
-            request.onerror = () => reject(request.error);
-        });
+        if (this.useFirebase) {
+            const snapshot = await this.recordsRef.once('value');
+            const records = [];
+            snapshot.forEach((childSnapshot) => {
+                records.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            return records;
+        } else {
+            // Fallback to IndexedDB
+            return new Promise((resolve, reject) => {
+                const transaction = this.localDB.transaction(['records'], 'readonly');
+                const objectStore = transaction.objectStore('records');
+                const request = objectStore.getAll();
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
     }
 
     async deleteRecord(id) {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['records'], 'readwrite');
-            const objectStore = transaction.objectStore('records');
-            const request = objectStore.delete(id);
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        if (this.useFirebase) {
+            await this.recordsRef.child(id).remove();
+            console.log('✓ Record deleted from Firebase');
+        } else {
+            // Fallback to IndexedDB
+            return new Promise((resolve, reject) => {
+                const transaction = this.localDB.transaction(['records'], 'readwrite');
+                const objectStore = transaction.objectStore('records');
+                const request = objectStore.delete(id);
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
     }
 
     async clearAllRecords() {
-        return new Promise((resolve, reject) => {
-            const transaction = this.db.transaction(['records'], 'readwrite');
-            const objectStore = transaction.objectStore('records');
-            const request = objectStore.clear();
-
-            request.onsuccess = () => resolve();
-            request.onerror = () => reject(request.error);
-        });
+        if (this.useFirebase) {
+            await this.recordsRef.remove();
+            console.log('✓ All records cleared from Firebase');
+        } else {
+            // Fallback to IndexedDB
+            return new Promise((resolve, reject) => {
+                const transaction = this.localDB.transaction(['records'], 'readwrite');
+                const objectStore = transaction.objectStore('records');
+                const request = objectStore.clear();
+                request.onsuccess = () => resolve();
+                request.onerror = () => reject(request.error);
+            });
+        }
     }
 }
 
@@ -180,11 +248,28 @@ class XteamApp {
             await this.db.init();
             this.setupEventListeners();
             this.loadRecords();
+
+            // Make app globally accessible for Firebase callbacks
+            window.xteamApp = this;
+
+            // Show connection status
+            if (this.db.useFirebase) {
+                Notification.show('✓ Connected to Firebase - Real-time sync enabled!', 'success');
+            } else {
+                Notification.show('Using local storage only - Data not shared', 'warning');
+            }
+
             console.log('Xteam application initialized successfully');
         } catch (error) {
             console.error('Failed to initialize application:', error);
             Notification.show('Failed to initialize application', 'error');
         }
+    }
+
+    // Called by Firebase when data changes
+    onDataChanged() {
+        console.log('Data changed - reloading...');
+        this.loadRecords();
     }
 
     setupEventListeners() {
