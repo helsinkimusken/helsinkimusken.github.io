@@ -1,0 +1,26 @@
+# Firebase Configuration - NEVER commit real credentials to public repos!
+# If repo is private, this can be committed
+# If repo is public, keep firebase-config.js local only
+# firebase-config.js
+
+# Node modules
+node_modules/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local environment files
+.env
+.env.local
