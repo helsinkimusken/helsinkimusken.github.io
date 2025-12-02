@@ -52,7 +52,7 @@ This guide will help you set up Firebase Realtime Database for the Xteam coordin
    - Click "Project settings"
    - Scroll down to "Your apps"
    - Click the web icon (`</>`) to add a web app
-   - App nickname: `Xteam Web App`
+   - App nickname: `X-Team Coordination App`
    - Do NOT check "Firebase Hosting"
    - Click "Register app"
 
@@ -71,6 +71,9 @@ const firebaseConfig = {
   appId: "1:123456789012:web:XXXXXXXXXXXXXX"
 };
 ```
+
+
+
 
 3. **Update firebase-config.js**
    - Open `firebase-config.js` in your Xteam project

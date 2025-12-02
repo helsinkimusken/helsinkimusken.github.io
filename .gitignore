@@ -1,7 +1,6 @@
 # Firebase Configuration - NEVER commit real credentials to public repos!
-# If repo is private, this can be committed
-# If repo is public, keep firebase-config.js local only
-# firebase-config.js
+# Keep firebase-config.js local only - DO NOT commit to GitHub
+firebase-config.js
 
 # Node modules
 node_modules/
