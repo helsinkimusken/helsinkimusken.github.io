@@ -602,6 +602,10 @@ class XteamApp {
             if (deleteBtn) {
                 deleteBtn.addEventListener('click', () => this.deleteRecord(record.id));
             }
+            const downloadBtn = document.getElementById(`download-${record.id}`);
+            if (downloadBtn) {
+                    downloadBtn.addEventListener('click', () => this.downloadRecordFiles(record));
+            }
         });
     }
 
@@ -682,9 +686,39 @@ class XteamApp {
                     <button id="delete-${record.id}" class="btn btn-danger">
                         <span class="icon">🗑️</span> Delete
                     </button>
+                    <button id="download-${record.id}" class="btn btn-primary">
+                        <span class="icon">⬇️</span> Download
+                    </button>
                 </div>
+                
             </div>
         `;
+    }
+    
+    async downloadRecordFiles(record) {
+        try {
+            const allFiles = [...(record.photos || []), ...(record.files || []), ...(record.archives || [])];
+            if (allFiles.length === 0) {
+                Notification.show('No files to download', 'warning');
+                return;
+            }
+
+            for (const file of allFiles) {
+                if (file.data) {
+                    const link = document.createElement('a');
+                    link.href = file.data;
+                    link.download = file.name;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                }
+            }
+
+            Notification.show('Files downloaded successfully!', 'success');
+        } catch (error) {
+            console.error('Download error:', error);
+            Notification.show('Failed to download files', 'error');
+        }
     }
 
     async deleteRecord(id) {
