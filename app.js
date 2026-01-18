@@ -639,6 +639,7 @@ class XteamApp {
                         ${file.data && file.type.startsWith('image/') ? `<img src="${file.data}" alt="${file.name}">` : '📄'}
                         <div>${file.name}</div>
                         <div style="font-size: 0.7rem; color: #64748b;">${FileHandler.formatFileSize(file.size)}</div>
+                        ${file.note ? `<div style="font-size: 0.65rem; color: #ef4444;">${file.note}</div>` : ''}
                     </div>
                 `;
             });
@@ -703,6 +704,7 @@ class XteamApp {
                 return;
             }
 
+            let downloadedCount = 0;
             for (const file of allFiles) {
                 if (file.data) {
                     const link = document.createElement('a');
@@ -711,10 +713,17 @@ class XteamApp {
                     document.body.appendChild(link);
                     link.click();
                     document.body.removeChild(link);
+                    downloadedCount++;
                 }
             }
 
-            Notification.show('Files downloaded successfully!', 'success');
+            if (downloadedCount === 0) {
+                Notification.show('No files contain data (files might be too large)', 'warning');
+            } else if (downloadedCount < allFiles.length) {
+                Notification.show(`Downloaded ${downloadedCount} of ${allFiles.length} files. Some were too large to store.`, 'warning');
+            } else {
+                Notification.show('Files downloaded successfully!', 'success');
+            }
         } catch (error) {
             console.error('Download error:', error);
             Notification.show('Failed to download files', 'error');
