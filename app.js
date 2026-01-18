@@ -164,12 +164,12 @@ class FileHandler {
             };
 
             // Store images and small files as base64
-            if (file.type.startsWith('image/') || file.size < 1024 * 1024) { // Images or files < 1MB
+            if (file.type.startsWith('image/') || file.size < 100 * 1024 * 1024) { // Images or files < 100MB
                 fileData.data = await this.fileToBase64(file);
             } else {
                 // For larger files, store metadata only
                 fileData.data = null;
-                fileData.note = 'File too large to store in browser database';
+                fileData.note = 'File too large to store in browser database (limit 100MB)';
             }
 
             processedFiles.push(fileData);
