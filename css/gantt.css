@@ -1,0 +1,456 @@
+/* Gantt Chart Styles */
+/* Timeline visualization with task dependencies and milestones */
+
+/* ============================================================
+   Gantt Controls
+   ============================================================ */
+
+.gantt-controls {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+    padding: 10px;
+    background: white;
+    border-radius: 8px;
+    border: 1px solid #e5e7eb;
+}
+
+.gantt-view-modes {
+    display: flex;
+    gap: 5px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 6px;
+}
+
+.gantt-mode-btn {
+    padding: 8px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+}
+
+.gantt-mode-btn:hover {
+    color: #2563eb;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.gantt-mode-btn.active {
+    color: #2563eb;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.gantt-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* ============================================================
+   Gantt Chart Container
+   ============================================================ */
+
+.gantt-chart-container {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    overflow-x: auto;
+    overflow-y: auto;
+    max-height: 600px;
+    margin-bottom: 15px;
+}
+
+.gantt-chart-container svg {
+    font-family: inherit;
+}
+
+/* ============================================================
+   Gantt Legend
+   ============================================================ */
+
+.gantt-legend {
+    display: flex;
+    gap: 20px;
+    padding: 12px 15px;
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    flex-wrap: wrap;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.85rem;
+    color: #6b7280;
+}
+
+.legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+}
+
+/* ============================================================
+   Gantt Task Bars (Frappe Gantt Custom Styles)
+   ============================================================ */
+
+/* Regular task */
+.gantt .bar {
+    fill: #3b82f6;
+}
+
+.gantt .bar-progress {
+    fill: #2563eb;
+}
+
+/* Completed task */
+.gantt .task-done .bar {
+    fill: #6b7280;
+}
+
+.gantt .task-done .bar-progress {
+    fill: #4b5563;
+}
+
+/* In progress task */
+.gantt .task-in-progress .bar {
+    fill: #3b82f6;
+}
+
+/* Blocked task */
+.gantt .task-blocked .bar {
+    fill: #ef4444;
+}
+
+.gantt .task-blocked .bar-progress {
+    fill: #dc2626;
+}
+
+/* High priority task */
+.gantt .task-high .bar {
+    fill: #f97316;
+}
+
+/* Urgent priority task */
+.gantt .task-urgent .bar {
+    fill: #ef4444;
+}
+
+/* Overdue task */
+.gantt .task-overdue .bar {
+    fill: #dc2626;
+    stroke: #991b1b;
+    stroke-width: 2;
+}
+
+/* Milestone */
+.gantt .milestone .bar {
+    fill: #10b981;
+    rx: 0;
+}
+
+/* Critical path */
+.gantt .critical-path .bar {
+    fill: #ef4444;
+    stroke: #dc2626;
+    stroke-width: 2;
+}
+
+.gantt .critical-path .bar-progress {
+    fill: #dc2626;
+}
+
+/* ============================================================
+   Gantt Grid and Headers
+   ============================================================ */
+
+.gantt .grid-background {
+    fill: #fafafa;
+}
+
+.gantt .grid-header {
+    fill: #f3f4f6;
+    stroke: #e5e7eb;
+}
+
+.gantt .grid-row {
+    fill: #ffffff;
+}
+
+.gantt .grid-row:nth-child(even) {
+    fill: #f9fafb;
+}
+
+.gantt .row-line {
+    stroke: #e5e7eb;
+}
+
+.gantt .tick {
+    stroke: #e5e7eb;
+}
+
+.gantt .today-highlight {
+    fill: rgba(37, 99, 235, 0.1);
+    stroke: #2563eb;
+    stroke-width: 1;
+}
+
+/* ============================================================
+   Gantt Text Labels
+   ============================================================ */
+
+.gantt .bar-label {
+    fill: white;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.gantt .bar-label.big {
+    fill: #1f2937;
+    font-size: 13px;
+}
+
+.gantt .upper-text {
+    font-size: 11px;
+    fill: #6b7280;
+}
+
+.gantt .lower-text {
+    font-size: 10px;
+    fill: #9ca3af;
+}
+
+.gantt-chart-container text {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    user-select: none;
+}
+
+/* ============================================================
+   Gantt Arrows (Dependencies)
+   ============================================================ */
+
+.gantt .arrow {
+    fill: none;
+    stroke: #2563eb;
+    stroke-width: 1.5;
+}
+
+.gantt .arrow-head {
+    fill: #2563eb;
+}
+
+.gantt .critical-path .arrow {
+    stroke: #ef4444;
+    stroke-width: 2;
+}
+
+.gantt .critical-path .arrow-head {
+    fill: #ef4444;
+}
+
+/* ============================================================
+   Gantt Popup (Task Details)
+   ============================================================ */
+
+.gantt .popup-wrapper {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    padding: 0;
+}
+
+.gantt-popup {
+    padding: 15px;
+    min-width: 200px;
+}
+
+.gantt-popup h3 {
+    margin: 0 0 12px 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.popup-details {
+    font-size: 0.875rem;
+}
+
+.popup-details p {
+    margin: 6px 0;
+    color: #4b5563;
+    line-height: 1.5;
+}
+
+.popup-details strong {
+    color: #1f2937;
+    font-weight: 600;
+}
+
+/* ============================================================
+   Gantt Interactions
+   ============================================================ */
+
+.gantt .bar-wrapper:hover .bar {
+    opacity: 0.9;
+    cursor: pointer;
+}
+
+.gantt .bar-wrapper.active .bar {
+    stroke: #2563eb;
+    stroke-width: 2;
+}
+
+.gantt .handle {
+    fill: #2563eb;
+    cursor: ew-resize;
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+
+.gantt .bar-wrapper:hover .handle {
+    opacity: 1;
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
+
+.gantt-chart-container::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.gantt-chart-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.gantt-chart-container::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.gantt-chart-container::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+    .gantt-controls {
+        flex-direction: column;
+        gap: 10px;
+        align-items: stretch;
+    }
+
+    .gantt-view-modes {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .gantt-actions {
+        width: 100%;
+        justify-content: center;
+    }
+
+    .gantt-chart-container {
+        max-height: 500px;
+    }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 768px) {
+    .gantt-mode-btn {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+
+    .gantt-legend {
+        gap: 10px;
+        padding: 10px;
+    }
+
+    .legend-item {
+        font-size: 0.8rem;
+        gap: 6px;
+    }
+
+    .legend-color {
+        width: 14px;
+        height: 14px;
+    }
+
+    .gantt-chart-container {
+        max-height: 400px;
+    }
+
+    .gantt-popup {
+        padding: 12px;
+        min-width: 180px;
+    }
+
+    .gantt-popup h3 {
+        font-size: 0.9rem;
+    }
+
+    .popup-details {
+        font-size: 0.8rem;
+    }
+}
+
+/* Very small screens (<480px) */
+@media (max-width: 480px) {
+    .gantt-controls {
+        padding: 8px;
+    }
+
+    .gantt-view-modes {
+        gap: 3px;
+    }
+
+    .gantt-mode-btn {
+        padding: 6px 10px;
+        font-size: 0.8rem;
+    }
+
+    .gantt-legend {
+        flex-direction: column;
+        gap: 8px;
+    }
+}
+
+/* ============================================================
+   Loading State
+   ============================================================ */
+
+.gantt-loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
+    color: #6b7280;
+}
+
+.gantt-loading::after {
+    content: "Loading timeline...";
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
+}

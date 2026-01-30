@@ -38,6 +38,10 @@ class ProjectManager {
                 this.kanbanView = new KanbanView(this);
                 console.log('✓ KanbanView initialized');
             }
+            if (typeof GanttView !== 'undefined') {
+                this.ganttView = new GanttView(this);
+                console.log('✓ GanttView initialized');
+            }
 
             console.log('✓ ProjectManager initialized');
         } catch (error) {

@@ -1046,6 +1046,59 @@ Created by: ${task.createdBy}
         `;
         alert(details.trim());
     }
+
+    async showCriticalPath() {
+        if (!this.projectManager || !this.projectManager.ganttView) {
+            alert('Gantt view not available');
+            return;
+        }
+
+        await this.projectManager.ganttView.highlightCriticalPath();
+    }
+
+    async addDatesToTasks() {
+        if (!this.projectManager || !this.projectManager.currentProject) {
+            alert('No project selected');
+            return;
+        }
+
+        const tasks = await this.projectManager.getCurrentProjectTasks();
+        const tasksWithoutDates = tasks.filter(t => !t.startDate || !t.dueDate);
+
+        if (tasksWithoutDates.length === 0) {
+            alert('All tasks already have dates');
+            return;
+        }
+
+        const confirmed = confirm(`Add dates to ${tasksWithoutDates.length} task(s)? They will be scheduled starting today with 1-day duration.`);
+        if (!confirmed) return;
+
+        try {
+            const today = Date.now();
+            const oneDayMs = 24 * 60 * 60 * 1000;
+
+            for (let i = 0; i < tasksWithoutDates.length; i++) {
+                const task = tasksWithoutDates[i];
+                const startDate = today + (i * oneDayMs);
+                const dueDate = startDate + oneDayMs;
+
+                await this.projectManager.updateTask(task.id, {
+                    startDate,
+                    dueDate
+                });
+            }
+
+            if (typeof Notification !== 'undefined') {
+                Notification.show(`Added dates to ${tasksWithoutDates.length} tasks`, 'success');
+            }
+
+            // Refresh the view
+            await this.projectManager.refreshCurrentView();
+        } catch (error) {
+            console.error('Failed to add dates to tasks:', error);
+            alert('Failed to add dates to tasks');
+        }
+    }
 }
 
 // Initialize the application when DOM is ready
