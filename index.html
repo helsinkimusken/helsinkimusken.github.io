@@ -6,6 +6,7 @@
     <title>Xteam - Cross-Team Coordination System</title>
     <link rel="icon" type="image/svg+xml" href="favicon.svg">
     <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="css/project-management.css">
 </head>
 <body>
     <!-- Login Modal -->
@@ -77,8 +78,99 @@
             </div>
         </header>
 
-        <main>
-            <div class="upload-section">
+        <main class="dual-panel-layout">
+            <!-- LEFT PANEL: Project Management -->
+            <div class="panel panel-project">
+                <!-- Project Header -->
+                <div class="panel-header">
+                    <select id="projectSelector" class="project-selector">
+                        <option value="">Select a project...</option>
+                    </select>
+                    <button id="newProjectBtn" class="btn btn-primary btn-sm">
+                        <span class="icon">+</span> New Project
+                    </button>
+                </div>
+
+                <!-- Tab Navigation: Tasks | Materials | Timeline -->
+                <div class="tab-navigation">
+                    <button class="tab-btn active" data-tab="tasks">
+                        <span class="icon">📋</span> Tasks
+                    </button>
+                    <button class="tab-btn" data-tab="materials">
+                        <span class="icon">📦</span> Materials
+                    </button>
+                    <button class="tab-btn" data-tab="timeline">
+                        <span class="icon">📅</span> Timeline
+                    </button>
+                </div>
+
+                <!-- Tasks Tab -->
+                <div id="tasksTab" class="tab-content active">
+                    <!-- View Switcher: Kanban | Gantt | List -->
+                    <div class="view-switcher">
+                        <button class="view-btn active" data-view="kanban" title="Kanban Board">
+                            <span class="icon">🎯</span> Kanban
+                        </button>
+                        <button class="view-btn" data-view="gantt" title="Gantt Timeline">
+                            <span class="icon">📊</span> Gantt
+                        </button>
+                        <button class="view-btn" data-view="list" title="List View">
+                            <span class="icon">📝</span> List
+                        </button>
+                    </div>
+
+                    <!-- New Task Button -->
+                    <div class="task-actions">
+                        <button id="newTaskBtn" class="btn btn-primary btn-block">
+                            <span class="icon">+</span> New Task
+                        </button>
+                    </div>
+
+                    <!-- View Container (renders current view) -->
+                    <div id="taskViewContainer" class="view-container">
+                        <div class="empty-state">
+                            <p class="icon">📋</p>
+                            <p>Select a project to view tasks</p>
+                            <p class="hint">Create a new project or select an existing one from the dropdown above</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Materials Tab -->
+                <div id="materialsTab" class="tab-content" style="display: none;">
+                    <div class="task-actions">
+                        <button id="newMaterialBtn" class="btn btn-primary btn-block">
+                            <span class="icon">+</span> Add Material
+                        </button>
+                    </div>
+                    <div id="materialsContainer" class="materials-container">
+                        <div class="empty-state">
+                            <p class="icon">📦</p>
+                            <p>No materials yet</p>
+                            <p class="hint">Add materials to track suppliers, delivery dates, and quantities</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Timeline Tab -->
+                <div id="timelineTab" class="tab-content" style="display: none;">
+                    <div id="projectTimeline" class="project-timeline">
+                        <div class="empty-state">
+                            <p class="icon">📅</p>
+                            <p>No timeline data</p>
+                            <p class="hint">Add tasks with start and due dates to see the project timeline</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- RIGHT PANEL: Info Sharing (Existing) -->
+            <div class="panel panel-info">
+                <div class="panel-title">
+                    <h2><span class="icon">📤</span> Info Sharing</h2>
+                </div>
+
+                <div class="upload-section">
                 <h2>Submit Information</h2>
 
                 <!-- Text Input -->
@@ -209,6 +301,8 @@
                 </div>
                 <div id="recordsList" class="records-list"></div>
             </div>
+            </div>
+            <!-- End of Right Panel -->
         </main>
 
         <!-- Dashboard Section -->
@@ -278,6 +372,11 @@
 
     <!-- Authentication Manager -->
     <script src="auth.js"></script>
+
+    <!-- Project Management Modules -->
+    <script src="js/project-management/project-manager.js"></script>
+    <script src="js/project-management/task-handler.js"></script>
+    <script src="js/project-management/dependency-manager.js"></script>
 
     <!-- Main Application -->
     <script src="app.js"></script>

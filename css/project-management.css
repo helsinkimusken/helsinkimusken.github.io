@@ -1,0 +1,386 @@
+/* Project Management Styles */
+/* Dual-panel layout, tabs, view switcher, and project management UI */
+
+/* ============================================================
+   Dual Panel Layout
+   ============================================================ */
+
+.dual-panel-layout {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    max-width: 1800px;
+    margin: 0 auto;
+    padding: 20px;
+}
+
+.panel {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    min-height: 600px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel-project {
+    border-top: 4px solid #2563eb;
+}
+
+.panel-info {
+    border-top: 4px solid #10b981;
+}
+
+.panel-title {
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.panel-title h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+/* ============================================================
+   Panel Header (Project Selector)
+   ============================================================ */
+
+.panel-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    padding-bottom: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.project-selector {
+    flex: 1;
+    padding: 10px 15px;
+    font-size: 1rem;
+    border: 2px solid #d1d5db;
+    border-radius: 8px;
+    background: white;
+    cursor: pointer;
+    transition: border-color 0.2s;
+}
+
+.project-selector:hover {
+    border-color: #2563eb;
+}
+
+.project-selector:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+.btn-sm {
+    padding: 8px 16px;
+    font-size: 0.875rem;
+    white-space: nowrap;
+}
+
+/* ============================================================
+   Tab Navigation
+   ============================================================ */
+
+.tab-navigation {
+    display: flex;
+    gap: 5px;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 0;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-bottom: 3px solid transparent;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.tab-btn:hover {
+    color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.tab-btn.active {
+    color: #2563eb;
+    border-bottom-color: #2563eb;
+    background: rgba(37, 99, 235, 0.05);
+}
+
+.tab-btn .icon {
+    font-size: 1.1rem;
+}
+
+/* ============================================================
+   Tab Content
+   ============================================================ */
+
+.tab-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.tab-content.active {
+    display: flex;
+}
+
+/* ============================================================
+   View Switcher (Kanban | Gantt | List)
+   ============================================================ */
+
+.view-switcher {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 15px;
+    background: #f3f4f6;
+    padding: 4px;
+    border-radius: 8px;
+}
+
+.view-btn {
+    flex: 1;
+    padding: 10px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 500;
+    color: #6b7280;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+}
+
+.view-btn:hover {
+    color: #2563eb;
+    background: rgba(255, 255, 255, 0.5);
+}
+
+.view-btn.active {
+    color: #2563eb;
+    background: white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.view-btn .icon {
+    font-size: 1rem;
+}
+
+/* ============================================================
+   Task Actions
+   ============================================================ */
+
+.task-actions {
+    margin-bottom: 15px;
+}
+
+.btn-block {
+    width: 100%;
+    justify-content: center;
+}
+
+/* ============================================================
+   View Container
+   ============================================================ */
+
+.view-container {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 15px;
+}
+
+.materials-container,
+.project-timeline {
+    flex: 1;
+    overflow-y: auto;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    background: #f9fafb;
+    padding: 15px;
+}
+
+/* ============================================================
+   Empty State
+   ============================================================ */
+
+.empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+    color: #6b7280;
+}
+
+.empty-state .icon {
+    font-size: 4rem;
+    margin-bottom: 15px;
+    opacity: 0.5;
+}
+
+.empty-state p {
+    margin: 5px 0;
+    font-size: 1.1rem;
+}
+
+.empty-state .hint {
+    font-size: 0.9rem;
+    color: #9ca3af;
+    max-width: 400px;
+    margin-top: 10px;
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+
+/* Tablet (768px - 1200px) */
+@media (max-width: 1200px) {
+    .dual-panel-layout {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+
+    .panel {
+        min-height: 500px;
+    }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 768px) {
+    .dual-panel-layout {
+        padding: 10px;
+        gap: 15px;
+    }
+
+    .panel {
+        padding: 15px;
+        min-height: 400px;
+    }
+
+    .panel-header {
+        flex-direction: column;
+        align-items: stretch;
+    }
+
+    .project-selector {
+        width: 100%;
+    }
+
+    .btn-sm {
+        width: 100%;
+    }
+
+    .tab-navigation {
+        flex-wrap: wrap;
+    }
+
+    .tab-btn {
+        padding: 10px 12px;
+        font-size: 0.85rem;
+        gap: 6px;
+    }
+
+    .tab-btn .icon {
+        font-size: 1rem;
+    }
+
+    .view-switcher {
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .view-btn {
+        padding: 12px;
+    }
+
+    .empty-state {
+        padding: 40px 15px;
+    }
+
+    .empty-state .icon {
+        font-size: 3rem;
+    }
+
+    .empty-state p {
+        font-size: 1rem;
+    }
+
+    .empty-state .hint {
+        font-size: 0.85rem;
+    }
+}
+
+/* ============================================================
+   Button Overrides for Project Management
+   ============================================================ */
+
+.panel .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.panel .btn .icon {
+    font-size: 1rem;
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
+
+.view-container::-webkit-scrollbar,
+.materials-container::-webkit-scrollbar,
+.project-timeline::-webkit-scrollbar {
+    width: 8px;
+}
+
+.view-container::-webkit-scrollbar-track,
+.materials-container::-webkit-scrollbar-track,
+.project-timeline::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.view-container::-webkit-scrollbar-thumb,
+.materials-container::-webkit-scrollbar-thumb,
+.project-timeline::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.view-container::-webkit-scrollbar-thumb:hover,
+.materials-container::-webkit-scrollbar-thumb:hover,
+.project-timeline::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}

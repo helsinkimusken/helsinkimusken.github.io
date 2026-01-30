@@ -33,6 +33,7 @@ function playBeep() {
 class XteamApp {
     constructor() {
         this.db = new Database();
+        this.projectManager = null; // Will be initialized after DB
         this.uploadedFiles = {
             photos: [],
             files: [],
@@ -46,8 +47,18 @@ class XteamApp {
     async init() {
         try {
             await this.db.init();
+
+            // Initialize Project Manager
+            if (typeof ProjectManager !== 'undefined') {
+                this.projectManager = new ProjectManager(this.db);
+                await this.projectManager.init();
+                console.log('✓ ProjectManager initialized');
+            }
+
             this.setupEventListeners();
+            this.setupProjectManagementUI();
             this.loadRecords();
+            this.loadProjects(); // Load existing projects
 
             // Make app globally accessible for Firebase callbacks
             window.xteamApp = this;
@@ -765,6 +776,226 @@ class XteamApp {
             ctx.fillText(dateLabel, 0, 0);
             ctx.restore();
         });
+    }
+
+    // ============================================================
+    // Project Management UI Setup
+    // ============================================================
+
+    setupProjectManagementUI() {
+        if (!this.projectManager) return;
+
+        // Tab switching (Tasks | Materials | Timeline)
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                const tabName = btn.dataset.tab;
+                this.switchTab(tabName);
+            });
+        });
+
+        // View switching (Kanban | Gantt | List)
+        const viewButtons = document.querySelectorAll('.view-btn');
+        viewButtons.forEach(btn => {
+            btn.addEventListener('click', async () => {
+                const viewType = btn.dataset.view;
+                await this.switchView(viewType);
+            });
+        });
+
+        // Project selector
+        const projectSelector = document.getElementById('projectSelector');
+        if (projectSelector) {
+            projectSelector.addEventListener('change', async (e) => {
+                const projectId = e.target.value;
+                if (projectId) {
+                    await this.selectProject(projectId);
+                }
+            });
+        }
+
+        // New project button
+        const newProjectBtn = document.getElementById('newProjectBtn');
+        if (newProjectBtn) {
+            newProjectBtn.addEventListener('click', () => {
+                this.showNewProjectModal();
+            });
+        }
+
+        // New task button
+        const newTaskBtn = document.getElementById('newTaskBtn');
+        if (newTaskBtn) {
+            newTaskBtn.addEventListener('click', () => {
+                this.showNewTaskModal();
+            });
+        }
+
+        // New material button
+        const newMaterialBtn = document.getElementById('newMaterialBtn');
+        if (newMaterialBtn) {
+            newMaterialBtn.addEventListener('click', () => {
+                this.showNewMaterialModal();
+            });
+        }
+    }
+
+    async loadProjects() {
+        if (!this.projectManager) return;
+
+        try {
+            const projects = await this.projectManager.getAllProjects();
+            const projectSelector = document.getElementById('projectSelector');
+
+            if (projectSelector) {
+                // Clear existing options except the first one
+                projectSelector.innerHTML = '<option value="">Select a project...</option>';
+
+                // Add projects to selector
+                projects.forEach(project => {
+                    const option = document.createElement('option');
+                    option.value = project.id;
+                    option.textContent = project.name;
+                    projectSelector.appendChild(option);
+                });
+
+                console.log(`✓ Loaded ${projects.length} projects`);
+            }
+        } catch (error) {
+            console.error('Failed to load projects:', error);
+        }
+    }
+
+    async selectProject(projectId) {
+        if (!this.projectManager) return;
+
+        try {
+            await this.projectManager.setCurrentProject(projectId);
+            console.log('✓ Project selected:', projectId);
+
+            // Refresh the current view
+            await this.projectManager.refreshCurrentView();
+
+            if (typeof Notification !== 'undefined') {
+                Notification.show('Project loaded', 'success');
+            }
+        } catch (error) {
+            console.error('Failed to select project:', error);
+            if (typeof Notification !== 'undefined') {
+                Notification.show('Failed to load project', 'error');
+            }
+        }
+    }
+
+    switchTab(tabName) {
+        // Update tab buttons
+        const tabButtons = document.querySelectorAll('.tab-btn');
+        tabButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.tab === tabName);
+        });
+
+        // Update tab content
+        const tabContents = document.querySelectorAll('.tab-content');
+        tabContents.forEach(content => {
+            content.style.display = 'none';
+        });
+
+        const activeTab = document.getElementById(`${tabName}Tab`);
+        if (activeTab) {
+            activeTab.style.display = 'flex';
+        }
+
+        console.log('✓ Switched to tab:', tabName);
+    }
+
+    async switchView(viewType) {
+        if (!this.projectManager) return;
+
+        // Update view buttons
+        const viewButtons = document.querySelectorAll('.view-btn');
+        viewButtons.forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.view === viewType);
+        });
+
+        // Switch view in ProjectManager
+        try {
+            await this.projectManager.switchView(viewType);
+            console.log('✓ Switched to view:', viewType);
+        } catch (error) {
+            console.error('Failed to switch view:', error);
+        }
+    }
+
+    showNewProjectModal() {
+        // Temporary simple prompt (will be replaced with proper modal in Phase 2)
+        const projectName = prompt('Enter project name:');
+        if (projectName && projectName.trim()) {
+            this.createProject(projectName.trim());
+        }
+    }
+
+    async createProject(projectName) {
+        if (!this.projectManager) return;
+
+        try {
+            const projectId = await this.projectManager.createProject({
+                name: projectName,
+                description: '',
+                status: 'active'
+            });
+
+            console.log('✓ Project created:', projectId);
+
+            // Reload projects list
+            await this.loadProjects();
+
+            // Select the new project
+            const projectSelector = document.getElementById('projectSelector');
+            if (projectSelector) {
+                projectSelector.value = projectId;
+                await this.selectProject(projectId);
+            }
+        } catch (error) {
+            console.error('Failed to create project:', error);
+        }
+    }
+
+    showNewTaskModal() {
+        if (!this.projectManager || !this.projectManager.currentProject) {
+            alert('Please select a project first');
+            return;
+        }
+
+        // Temporary simple prompt (will be replaced with proper modal)
+        const taskTitle = prompt('Enter task title:');
+        if (taskTitle && taskTitle.trim()) {
+            this.createTask(taskTitle.trim());
+        }
+    }
+
+    async createTask(taskTitle) {
+        if (!this.projectManager) return;
+
+        try {
+            const taskId = await this.projectManager.createTask({
+                title: taskTitle,
+                description: '',
+                status: 'todo',
+                priority: 'medium'
+            });
+
+            console.log('✓ Task created:', taskId);
+        } catch (error) {
+            console.error('Failed to create task:', error);
+        }
+    }
+
+    showNewMaterialModal() {
+        if (!this.projectManager || !this.projectManager.currentProject) {
+            alert('Please select a project first');
+            return;
+        }
+
+        alert('Material tracking UI coming soon in Phase 6');
     }
 }
 

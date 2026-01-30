@@ -56,17 +56,10 @@ header h1 {
 }
 
 main {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 30px;
     margin-bottom: 40px;
 }
 
-@media (max-width: 1024px) {
-    main {
-        grid-template-columns: 1fr;
-    }
-}
+/* Dual-panel layout styles moved to css/project-management.css */
 
 .upload-section,
 .data-section {
