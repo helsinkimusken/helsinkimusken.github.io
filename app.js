@@ -997,6 +997,55 @@ class XteamApp {
 
         alert('Material tracking UI coming soon in Phase 6');
     }
+
+    showTaskMenu(taskId) {
+        // Temporary simple menu (will be replaced with proper context menu)
+        const actions = ['Edit Task', 'Delete Task', 'View Details', 'Cancel'];
+        const choice = prompt(`Task Actions:\n1. Edit Task\n2. Delete Task\n3. View Details\n\nEnter number (1-3):`);
+
+        switch (choice) {
+            case '1':
+                this.editTaskPrompt(taskId);
+                break;
+            case '2':
+                this.deleteTaskConfirm(taskId);
+                break;
+            case '3':
+                this.viewTaskDetails(taskId);
+                break;
+        }
+    }
+
+    async editTaskPrompt(taskId) {
+        const task = await this.projectManager.db.getTask(taskId);
+        if (!task) return;
+
+        const newTitle = prompt('Edit task title:', task.title);
+        if (newTitle && newTitle.trim()) {
+            await this.projectManager.updateTask(taskId, { title: newTitle.trim() });
+        }
+    }
+
+    async deleteTaskConfirm(taskId) {
+        if (!this.projectManager) return;
+        await this.projectManager.deleteTask(taskId, false);
+    }
+
+    async viewTaskDetails(taskId) {
+        const task = await this.projectManager.db.getTask(taskId);
+        if (!task) return;
+
+        const details = `
+Task: ${task.title}
+Description: ${task.description || 'No description'}
+Status: ${task.status}
+Priority: ${task.priority}
+Progress: ${task.progress}%
+Assigned to: ${task.assignedTo || 'Unassigned'}
+Created by: ${task.createdBy}
+        `;
+        alert(details.trim());
+    }
 }
 
 // Initialize the application when DOM is ready

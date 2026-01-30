@@ -33,6 +33,12 @@ class ProjectManager {
                 this.materialTracker = new MaterialTracker(this.db);
             }
 
+            // Initialize views
+            if (typeof KanbanView !== 'undefined') {
+                this.kanbanView = new KanbanView(this);
+                console.log('✓ KanbanView initialized');
+            }
+
             console.log('✓ ProjectManager initialized');
         } catch (error) {
             console.error('Failed to initialize ProjectManager:', error);

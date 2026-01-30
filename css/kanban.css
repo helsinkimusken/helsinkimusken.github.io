@@ -1,0 +1,420 @@
+/* Kanban Board Styles */
+/* Drag-and-drop task board with columns for each status */
+
+/* ============================================================
+   Kanban Board Layout
+   ============================================================ */
+
+.kanban-board {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 20px;
+    height: 100%;
+    padding: 10px;
+    overflow-x: auto;
+}
+
+/* ============================================================
+   Kanban Columns
+   ============================================================ */
+
+.kanban-column {
+    background: #f9fafb;
+    border-radius: 12px;
+    border: 2px solid #e5e7eb;
+    display: flex;
+    flex-direction: column;
+    min-height: 500px;
+    max-height: 700px;
+}
+
+.kanban-column.status-todo {
+    border-top: 4px solid #6b7280;
+}
+
+.kanban-column.status-in-progress {
+    border-top: 4px solid #3b82f6;
+}
+
+.kanban-column.status-blocked {
+    border-top: 4px solid #ef4444;
+}
+
+.kanban-column.status-done {
+    border-top: 4px solid #10b981;
+}
+
+.column-header {
+    padding: 15px;
+    border-bottom: 2px solid #e5e7eb;
+}
+
+.column-title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #1f2937;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.task-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 24px;
+    height: 24px;
+    padding: 0 8px;
+    background: #e5e7eb;
+    border-radius: 12px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #4b5563;
+}
+
+.column-content {
+    flex: 1;
+    padding: 15px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.column-content.drag-over {
+    background: rgba(59, 130, 246, 0.05);
+    border: 2px dashed #3b82f6;
+    border-radius: 8px;
+}
+
+.column-empty {
+    text-align: center;
+    padding: 40px 20px;
+    color: #9ca3af;
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   Task Cards
+   ============================================================ */
+
+.task-card {
+    background: white;
+    border: 1px solid #e5e7eb;
+    border-radius: 8px;
+    padding: 12px;
+    cursor: move;
+    transition: all 0.2s;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+/* Priority borders */
+.task-card.priority-low {
+    border-left: 4px solid #10b981;
+}
+
+.task-card.priority-medium {
+    border-left: 4px solid #f59e0b;
+}
+
+.task-card.priority-high {
+    border-left: 4px solid #f97316;
+}
+
+.task-card.priority-urgent {
+    border-left: 4px solid #ef4444;
+}
+
+/* ============================================================
+   Task Card Header
+   ============================================================ */
+
+.task-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+}
+
+.task-priority {
+    font-size: 1.2rem;
+}
+
+.task-menu-btn {
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 1.2rem;
+    color: #9ca3af;
+    padding: 4px 8px;
+    border-radius: 4px;
+    transition: all 0.2s;
+}
+
+.task-menu-btn:hover {
+    background: #f3f4f6;
+    color: #4b5563;
+}
+
+/* ============================================================
+   Task Card Content
+   ============================================================ */
+
+.task-card-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 6px;
+    line-height: 1.4;
+    word-wrap: break-word;
+}
+
+.task-card-description {
+    font-size: 0.85rem;
+    color: #6b7280;
+    margin-bottom: 8px;
+    line-height: 1.4;
+    max-height: 3.6em;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+/* ============================================================
+   Task Progress Bar
+   ============================================================ */
+
+.task-progress-bar {
+    width: 100%;
+    height: 6px;
+    background: #e5e7eb;
+    border-radius: 3px;
+    overflow: hidden;
+    margin-bottom: 10px;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6, #2563eb);
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+/* ============================================================
+   Task Card Footer
+   ============================================================ */
+
+.task-card-footer {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #f3f4f6;
+}
+
+.task-assignee {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.task-assignee .icon {
+    font-size: 0.9rem;
+}
+
+.task-due-date {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.task-due-date.overdue {
+    background: #fee2e2;
+    color: #dc2626;
+    font-weight: 600;
+}
+
+.task-due-date .icon {
+    font-size: 0.9rem;
+}
+
+.task-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    color: #6b7280;
+    background: #f3f4f6;
+    padding: 4px 8px;
+    border-radius: 12px;
+}
+
+.task-badge .icon {
+    font-size: 0.9rem;
+}
+
+/* ============================================================
+   Scrollbar Styling
+   ============================================================ */
+
+.column-content::-webkit-scrollbar {
+    width: 6px;
+}
+
+.column-content::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.column-content::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 3px;
+}
+
+.column-content::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+.kanban-board::-webkit-scrollbar {
+    height: 8px;
+}
+
+.kanban-board::-webkit-scrollbar-track {
+    background: #f1f1f1;
+}
+
+.kanban-board::-webkit-scrollbar-thumb {
+    background: #cbd5e1;
+    border-radius: 4px;
+}
+
+.kanban-board::-webkit-scrollbar-thumb:hover {
+    background: #94a3b8;
+}
+
+/* ============================================================
+   Responsive Design
+   ============================================================ */
+
+/* Tablet (768px - 1024px) */
+@media (max-width: 1024px) {
+    .kanban-board {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 15px;
+    }
+
+    .kanban-column {
+        min-height: 400px;
+    }
+}
+
+/* Mobile (<768px) */
+@media (max-width: 768px) {
+    .kanban-board {
+        grid-template-columns: 1fr;
+        gap: 15px;
+        padding: 5px;
+    }
+
+    .kanban-column {
+        min-height: 300px;
+        max-height: 500px;
+    }
+
+    .column-header {
+        padding: 12px;
+    }
+
+    .column-content {
+        padding: 10px;
+        gap: 10px;
+    }
+
+    .task-card {
+        padding: 10px;
+    }
+
+    .task-card-title {
+        font-size: 0.9rem;
+    }
+
+    .task-card-description {
+        font-size: 0.8rem;
+    }
+
+    .task-card-footer {
+        gap: 8px;
+    }
+
+    .task-assignee,
+    .task-due-date,
+    .task-badge {
+        font-size: 0.75rem;
+        padding: 3px 6px;
+    }
+}
+
+/* Very small screens (<480px) */
+@media (max-width: 480px) {
+    .kanban-board {
+        gap: 10px;
+    }
+
+    .column-title {
+        font-size: 0.9rem;
+    }
+
+    .task-count {
+        min-width: 20px;
+        height: 20px;
+        padding: 0 6px;
+        font-size: 0.75rem;
+    }
+}
+
+/* ============================================================
+   Touch Device Enhancements
+   ============================================================ */
+
+@media (hover: none) and (pointer: coarse) {
+    .task-card {
+        cursor: grab;
+    }
+
+    .task-card:active {
+        cursor: grabbing;
+    }
+
+    .task-card:hover {
+        transform: none;
+    }
+
+    .task-menu-btn {
+        padding: 8px 12px;
+        font-size: 1.4rem;
+    }
+}
