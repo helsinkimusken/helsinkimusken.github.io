@@ -30,8 +30,8 @@ const authorizedUsers = [
 const wechatConfig = {
   enabled: true,   // WeChat QR tab enabled
   mode: 'contact', // Simple contact mode (no OAuth backend needed)
-  wechatId: "wxid_vy4trddsp10a22",  // Replace with your WeChat ID (e.g., "helsinkimusken")
-  qrCodeImage: "wechat-admin-qr.png",  // Or path to your WeChat QR code image
+  wechatId: "wxid_vy4trddsp10a22",  // Your WeChat ID
+  qrCodeImage: "",  // Leave empty to auto-generate QR from wechatId, or add path to your QR image
   adminName: "Helsinkimusken",  // Your name to display
   instructions: "Scan to contact admin for access",  // Custom instructions
   appId: "",       // Not needed for contact mode
