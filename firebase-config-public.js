@@ -20,8 +20,9 @@ const firebaseConfig = {
 // IMPORTANT: Only these users can access the system after authentication
 // This list should match your Firebase Security Rules
 const authorizedUsers = [
-  "example1@company.com",
-  "example2@company.com"
+    "helsinimusken@gmail.com",
+    "james.chow@hyzl.xyz",
+    "jon.schmit@gmail.com"
   // TODO: Replace with actual team member emails before deployment
 ];
 
