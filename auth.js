@@ -205,6 +205,12 @@ class AuthManager {
             return;
         }
 
+        // Simple contact mode - show QR code to contact admin
+        if (wechatConfig.mode === 'contact') {
+            this.showWeChatContactQR();
+            return;
+        }
+
         if (!wechatConfig.appId) {
             this.showError('wechatLoginError', 'WeChat App ID not configured');
             return;
@@ -265,6 +271,77 @@ class AuthManager {
         } catch (error) {
             console.error('QR code generation error:', error);
             this.showError('wechatLoginError', 'Failed to generate QR code');
+        }
+    }
+
+    /**
+     * Show WeChat contact QR code (simple mode)
+     */
+    showWeChatContactQR() {
+        const qrCodeContainer = document.getElementById('qrCodeImage');
+        const wechatId = wechatConfig.wechatId || 'admin';
+        const adminName = wechatConfig.adminName || 'Admin';
+        const instructions = wechatConfig.instructions || 'Scan to contact admin for access';
+        const qrCodeImage = wechatConfig.qrCodeImage;
+
+        this.hideError('wechatLoginError');
+
+        // If a QR code image is provided, display it
+        if (qrCodeImage) {
+            qrCodeContainer.innerHTML = `
+                <div style="padding: 20px; background: #f0f0f0; border-radius: 8px; text-align: center;">
+                    <p style="font-size: 16px; color: #333; margin-bottom: 15px; font-weight: 500;">
+                        Contact ${adminName} on WeChat
+                    </p>
+                    <div style="background: white; padding: 15px; display: inline-block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <img src="${qrCodeImage}" alt="WeChat QR Code" style="width: 200px; height: 200px; display: block;" onerror="this.parentElement.innerHTML='<p style=\\'color:#999;padding:20px;\\'>QR code image not found</p>'">
+                    </div>
+                    <p style="font-size: 13px; color: #666; margin-top: 15px; line-height: 1.6;">
+                        ${instructions}
+                    </p>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                        WeChat ID: ${wechatId}
+                    </p>
+                </div>
+            `;
+        } else {
+            // Generate QR code from WeChat ID
+            const wechatUrl = `weixin://dl/chat?${wechatId}`;
+
+            qrCodeContainer.innerHTML = `
+                <div style="padding: 20px; background: #f0f0f0; border-radius: 8px; text-align: center;">
+                    <p style="font-size: 16px; color: #333; margin-bottom: 15px; font-weight: 500;">
+                        Contact ${adminName} on WeChat
+                    </p>
+                    <div style="background: white; padding: 20px; display: inline-block; border-radius: 8px; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                        <div id="simple-wechat-qr"></div>
+                    </div>
+                    <p style="font-size: 13px; color: #666; margin-top: 15px; line-height: 1.6;">
+                        ${instructions}
+                    </p>
+                    <p style="font-size: 12px; color: #999; margin-top: 10px;">
+                        WeChat ID: ${wechatId}
+                    </p>
+                </div>
+            `;
+
+            // Generate QR code using QRCode.js if available
+            if (typeof QRCode !== 'undefined') {
+                new QRCode(document.getElementById('simple-wechat-qr'), {
+                    text: wechatUrl,
+                    width: 180,
+                    height: 180,
+                    colorDark: "#09B83E",  // WeChat green
+                    colorLight: "#ffffff"
+                });
+            } else {
+                document.getElementById('simple-wechat-qr').innerHTML = `
+                    <p style="color: #666; padding: 40px 20px; font-size: 14px;">
+                        <strong style="display: block; margin-bottom: 10px;">Add on WeChat:</strong>
+                        <span style="font-family: monospace; background: #f5f5f5; padding: 8px 12px; border-radius: 4px; display: inline-block;">${wechatId}</span>
+                    </p>
+                `;
+            }
         }
     }
 
