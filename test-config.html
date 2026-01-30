@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Xteam Configuration Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1e1e1e;
+            color: #d4d4d4;
+        }
+        .test { margin: 10px 0; padding: 10px; background: #2d2d2d; border-radius: 4px; }
+        .pass { border-left: 4px solid #4ec9b0; }
+        .fail { border-left: 4px solid #f48771; }
+        h1 { color: #4ec9b0; }
+        h2 { color: #dcdcaa; margin-top: 20px; }
+        code { background: #3e3e3e; padding: 2px 6px; border-radius: 3px; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Xteam Configuration Diagnostic</h1>
+    <div id="results"></div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-database-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+
+    <!-- Firebase Configuration -->
+    <script src="firebase-config-public.js"></script>
+
+    <!-- QR Code Generator -->
+    <script src="https://cdn.jsdelivr.net/npm/qrcodejs@1.0.0/qrcode.min.js"></script>
+
+    <!-- Authentication Manager -->
+    <script src="auth.js"></script>
+
+    <!-- Diagnostic Script -->
+    <script>
+        const results = document.getElementById('results');
+
+        function addTest(name, passed, details = '') {
+            const div = document.createElement('div');
+            div.className = `test ${passed ? 'pass' : 'fail'}`;
+            div.innerHTML = `
+                <strong>${passed ? '✅' : '❌'} ${name}</strong>
+                ${details ? `<br><small>${details}</small>` : ''}
+            `;
+            results.appendChild(div);
+        }
+
+        function runTests() {
+            // Test 1: Firebase SDK
+            addTest('Firebase SDK loaded', typeof firebase !== 'undefined',
+                typeof firebase !== 'undefined' ? `Version: ${firebase.SDK_VERSION}` : 'Firebase not found');
+
+            // Test 2: Firebase Config
+            addTest('Firebase Config loaded', typeof firebaseConfig !== 'undefined',
+                typeof firebaseConfig !== 'undefined' ? `Project: ${firebaseConfig.projectId}` : 'firebaseConfig not found');
+
+            // Test 3: Authorized Users
+            addTest('Authorized Users defined', typeof authorizedUsers !== 'undefined',
+                typeof authorizedUsers !== 'undefined' ? `Count: ${authorizedUsers.length} users` : 'authorizedUsers not found');
+
+            // Test 4: WeChat Config
+            addTest('WeChat Config defined', typeof wechatConfig !== 'undefined',
+                typeof wechatConfig !== 'undefined' ? `Enabled: ${wechatConfig.enabled}` : 'wechatConfig not found');
+
+            // Test 5: QRCode library
+            addTest('QRCode.js loaded', typeof QRCode !== 'undefined',
+                typeof QRCode !== 'undefined' ? 'QRCode constructor available' : 'QRCode not found');
+
+            // Test 6: Auth Manager
+            addTest('AuthManager class loaded', typeof AuthManager !== 'undefined',
+                typeof AuthManager !== 'undefined' ? 'AuthManager constructor available' : 'AuthManager not found');
+
+            // Test 7: Firebase Initialization
+            let firebaseInitResult = 'Not attempted';
+            try {
+                if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
+                    if (!firebase.apps.length) {
+                        firebase.initializeApp(firebaseConfig);
+                        firebaseInitResult = 'Initialized successfully';
+                        addTest('Firebase App initialization', true, firebaseInitResult);
+                    } else {
+                        firebaseInitResult = 'Already initialized';
+                        addTest('Firebase App initialization', true, firebaseInitResult);
+                    }
+                } else {
+                    throw new Error('Firebase or config not available');
+                }
+            } catch (error) {
+                firebaseInitResult = error.message;
+                addTest('Firebase App initialization', false, firebaseInitResult);
+            }
+
+            // Test 8: Firebase Auth
+            try {
+                const auth = firebase.auth();
+                addTest('Firebase Auth available', true, 'Auth instance created');
+            } catch (error) {
+                addTest('Firebase Auth available', false, error.message);
+            }
+
+            // Test 9: Firebase Database
+            try {
+                const db = firebase.database();
+                addTest('Firebase Database available', true, `Database URL: ${firebaseConfig.databaseURL}`);
+            } catch (error) {
+                addTest('Firebase Database available', false, error.message);
+            }
+
+            // Test 10: Try creating AuthManager
+            try {
+                const testAuthManager = new AuthManager();
+                addTest('AuthManager instantiation', true, 'AuthManager created successfully');
+
+                // Try initializing
+                testAuthManager.init().then(() => {
+                    addTest('AuthManager initialization', true, 'Auth manager initialized successfully');
+                }).catch(error => {
+                    addTest('AuthManager initialization', false, error.message);
+                });
+            } catch (error) {
+                addTest('AuthManager instantiation', false, error.message);
+            }
+
+            // Summary
+            const summary = document.createElement('div');
+            summary.style.marginTop = '30px';
+            summary.style.padding = '20px';
+            summary.style.background = '#2d2d2d';
+            summary.style.borderRadius = '8px';
+            summary.innerHTML = `
+                <h2>📊 Summary</h2>
+                <p>If all tests pass ✅, the app should work correctly.</p>
+                <p>If any test fails ❌, check the error details above.</p>
+                <p><strong>Next step:</strong> Go back to <a href="index.html" style="color: #4ec9b0;">index.html</a> and try logging in.</p>
+            `;
+            results.appendChild(summary);
+        }
+
+        // Run tests when page loads
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', runTests);
+        } else {
+            runTests();
+        }
+    </script>
+</body>
+</html>
