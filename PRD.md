@@ -51,23 +51,19 @@ Step 3:
 Data analysis and real-time dash board.
 I will provide the details after info / data uploaded.
 
-
-
 Feedback and features to add (2025-11-30 1am)):
 
 Feedback #1： the function is great in both laptop and phone. Cameras are loaded properly.  Bardcode and QR codes are identified effectively.
 
 Features to add:
 
-#1. To add beep sound for laptop and phone, when barcode / QR code is detected. 
+#1. To add beep sound for laptop and phone, when barcode / QR code is detected.
 
 #2. In order to submit the record, please prepare a storage in github.
 
 #3. To generate dash board to summarize the data according to catergories, or priority, etc.
 
-#4. to connect the records with database for effective enquiry 
-
-
+#4. to connect the records with database for effective enquiry
 
 Feedback and features to add (2025-11-30 12:38pm)):
 
@@ -82,3 +78,54 @@ Features to add as well as enquiries:
 #3. To generate dash board to summarize the data according to catergories, or priority, etc. The dashboard should cover all inputs.
 
 #4. to connect the records with database for effective enquiry. where to keep the database and data?
+
+
+
+Feedback / Issues / Features to add [Dated Dec 2, 2025, time: 06:57 SG Time / 07:57 Tokyo Time]
+
+1. The real-time info sharing is very successful. I can see the info instantly from multiple laptop and phones.
+2. I'd like to check the Privacy and Security:
+
+    I have made my repo public, and thus my website can be accessed withou free hosting, i.e.,  helsinkimusken.github.io.
+
+My concern is if my data is secured, after I commit my firebase credentials into github repo, as follows:
+
+### **Step 2: Update Configuration**
+
+1. Open [firebase-config.js](vscode-webview://03n9odh7vlqqk0iii5u79sds8ni24bo6rb18q7sdrv74kntn1j0a/firebase-config.js)
+2. Replace placeholder values with your Firebase credentials
+3. Save the file
+
+### **Step 3: Deploy**
+
+```bash
+git add firebase-config.js
+git commit -m "Add my Firebase credentials"
+git push origin main
+```
+
+Please advise the method to balance free github hosting and data security. 
+
+if needed, I have my own storage space in google driver, own PC with static IP.
+
+
+Feedback / Issues / Features to add [Dated Dec 2, 2025, time: 08:59 SG Time / 09:59 Tokyo Time]
+
+I have made my github repo private. However, I cannot access from the following address: https://helsinkimusken.github.io/
+
+
+I am not sure if I have understood your instruction about github pages:
+
+
+### **Step 2: Keep GitHub Pages Active** (1 minute)
+
+Even with a  **private repository** , GitHub Pages still works! You just need to:
+
+1. In Settings → Pages
+2. Make sure it's still set to deploy from `main` branch
+3. Your site remains accessible at [https://helsinkimusken.github.io](https://helsinkimusken.github.io/)
+4. **Only the code is private** , the website stays public
+
+How to check if the page is public and code is private.
+
+It seems I need to pay for a Github Pages plan @ U$48/month. is it correct? not free?
