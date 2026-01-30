@@ -971,7 +971,17 @@ class XteamApp {
 // Initialize the application when DOM is ready
 document.addEventListener('DOMContentLoaded', async () => {
     try {
-        // Initialize Authentication Manager first
+        // Initialize Firebase first (required before AuthManager)
+        if (typeof firebase !== 'undefined' && typeof firebaseConfig !== 'undefined') {
+            if (!firebase.apps.length) {
+                firebase.initializeApp(firebaseConfig);
+                console.log('✓ Firebase initialized');
+            }
+        } else {
+            throw new Error('Firebase or firebaseConfig not loaded. Check firebase-config-public.js');
+        }
+
+        // Initialize Authentication Manager (requires Firebase to be initialized)
         window.authManager = new AuthManager();
         await window.authManager.init();
 
