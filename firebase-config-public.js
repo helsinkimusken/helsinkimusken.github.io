@@ -1,7 +1,10 @@
 // Firebase Configuration - PUBLIC VERSION
-// This file can be safely committed to public repositories
-// Security is handled by Firebase Realtime Database Rules
+// This file is SAFE to commit to public repositories
+// Firebase API keys are PUBLIC by design and not secret credentials
+// Security is enforced by Firebase Security Rules (server-side), NOT by hiding API keys
 
+// Your web app's Firebase configuration
+// These credentials are PUBLIC and safe to expose
 const firebaseConfig = {
   apiKey: "AIzaSyDMpqrKLYJfyvcrhCM0NR251gC-cDVr_B8",
   authDomain: "xteam-coordination.firebaseapp.com",
@@ -13,6 +16,25 @@ const firebaseConfig = {
   measurementId: "G-EJF6CM9TJ7"
 };
 
-// NOTE: These credentials are PUBLIC and safe to expose
-// Security is enforced through Firebase Realtime Database Rules
-// See SECURITY-GUIDE.md for how to set up proper rules
+// Authorized Users Configuration
+// IMPORTANT: Only these users can access the system after authentication
+// This list should match your Firebase Security Rules
+const authorizedUsers = [
+  "example1@company.com",
+  "example2@company.com"
+  // TODO: Replace with actual team member emails before deployment
+];
+
+// WeChat QR Code Configuration
+const wechatConfig = {
+  enabled: false,  // Set to true when WeChat backend is ready
+  appId: "",       // Add WeChat App ID when ready
+  loginTimeout: 180000,
+  refreshInterval: 3000
+};
+
+// SECURITY NOTES:
+// 1. Firebase API keys are PUBLIC and safe to expose (by design)
+// 2. Real security comes from Firebase Security Rules (see FIREBASE-SECURITY-RULES.md)
+// 3. Only authenticated users in the authorizedUsers list can access data
+// 4. Update authorizedUsers array before deploying to production

@@ -1,5 +1,7 @@
-# Firebase Configuration - NEVER commit real credentials to public repos!
-# Keep firebase-config.js local only - DO NOT commit to GitHub
+# Firebase Configuration - Local Development
+# firebase-config.js is for local development only (optional)
+# Production uses firebase-config-public.js which is SAFE to commit
+# (Firebase API keys are public by design - security is in Firebase Rules)
 firebase-config.js
 
 # Node modules

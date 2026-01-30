@@ -969,6 +969,28 @@ class XteamApp {
 }
 
 // Initialize the application when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
-    new XteamApp();
+document.addEventListener('DOMContentLoaded', async () => {
+    try {
+        // Initialize Authentication Manager first
+        window.authManager = new AuthManager();
+        await window.authManager.init();
+
+        // Set up auth state change callback to initialize app when authenticated
+        window.authManager.onAuthStateChanged((user) => {
+            if (user && !window.xteamApp) {
+                // User is authenticated and app not yet initialized
+                console.log('User authenticated, initializing Xteam app...');
+                window.xteamApp = new XteamApp();
+            } else if (!user && window.xteamApp) {
+                // User logged out - could reset app state here if needed
+                console.log('User logged out');
+            }
+        });
+
+        console.log('✓ Application initialization complete');
+
+    } catch (error) {
+        console.error('Application initialization error:', error);
+        alert('Failed to initialize application. Please refresh the page.');
+    }
 });
