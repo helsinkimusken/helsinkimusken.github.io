@@ -106,6 +106,15 @@ class XteamApp {
         // Filter
         document.getElementById('filterCategory').addEventListener('change', (e) => this.filterRecords(e.target.value));
 
+        // Project filter toggle
+        const filterByProjectCheckbox = document.getElementById('filterByProject');
+        if (filterByProjectCheckbox) {
+            filterByProjectCheckbox.addEventListener('change', (e) => {
+                const filterCategory = document.getElementById('filterCategory')?.value || '';
+                this.loadRecords(filterCategory, e.target.checked);
+            });
+        }
+
         // Export and clear all
         document.getElementById('exportButton').addEventListener('click', () => this.exportData());
         document.getElementById('clearAllButton').addEventListener('click', () => this.clearAllData());
@@ -329,12 +338,16 @@ class XteamApp {
                 archives: await FileHandler.processFiles(this.uploadedFiles.archives)
             };
 
+            // Get current project ID
+            const currentProjectId = this.projectManager?.currentProject?.id || null;
+
             const record = {
                 textInput,
                 barcodeInput,
                 userName,
                 category: category || 'other',
                 timestamp: new Date().toISOString(),
+                projectId: currentProjectId,
                 ...processedData
             };
 
@@ -377,18 +390,37 @@ class XteamApp {
         Notification.show('Form cleared', 'success');
     }
 
-    async loadRecords(filterCategory = '') {
+    async loadRecords(filterCategory = '', filterByProject = true) {
         try {
-            const records = await this.db.getAllRecords();
+            let records;
+            const currentProjectId = this.projectManager?.currentProject?.id;
+
+            // Filter by project if enabled and a project is selected
+            if (filterByProject && currentProjectId) {
+                records = await this.db.getRecordsByProject(currentProjectId);
+            } else {
+                records = await this.db.getAllRecords();
+            }
+
             const filteredRecords = filterCategory
                 ? records.filter(r => r.category === filterCategory)
                 : records;
 
             this.displayRecords(filteredRecords.reverse()); // Show newest first
-            this.updateDashboard(records); // Update dashboard with all records
+            this.updateDashboard(records, currentProjectId); // Update dashboard with project context
+            this.updateProjectIndicator(); // Update project indicator in info sharing panel
         } catch (error) {
             console.error('Error loading records:', error);
             Notification.show('Failed to load records', 'error');
+        }
+    }
+
+    updateProjectIndicator() {
+        const indicator = document.getElementById('currentProjectName');
+        if (indicator) {
+            const project = this.projectManager?.currentProject;
+            indicator.textContent = project ? project.name : 'No project selected';
+            indicator.classList.toggle('no-project', !project);
         }
     }
 
@@ -557,7 +589,8 @@ class XteamApp {
     }
 
     filterRecords(category) {
-        this.loadRecords(category);
+        const filterByProject = document.getElementById('filterByProject')?.checked ?? true;
+        this.loadRecords(category, filterByProject);
     }
 
     async exportData() {
@@ -595,27 +628,200 @@ class XteamApp {
         }
     }
 
-    updateDashboard(records) {
-        // Calculate statistics
-        const total = records.length;
-        const now = new Date();
-        const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-        const weekAgo = new Date(today.getTime() - 7 * 24 * 60 * 60 * 1000);
+    async updateDashboard(records, projectId = null) {
+        try {
+            // Get tasks for the current project
+            let tasks = [];
+            let milestones = [];
 
-        const todayCount = records.filter(r => new Date(r.timestamp) >= today).length;
-        const weekCount = records.filter(r => new Date(r.timestamp) >= weekAgo).length;
-        const uniqueUsers = [...new Set(records.map(r => r.userName))].length;
+            if (projectId && this.db) {
+                tasks = await this.db.getTasksByProject(projectId);
+                milestones = await this.db.getMilestonesByProject(projectId);
+            } else if (this.db) {
+                tasks = await this.db.getAllTasks();
+            }
 
-        // Update stats
-        document.getElementById('totalRecords').textContent = total;
-        document.getElementById('todayRecords').textContent = todayCount;
-        document.getElementById('weekRecords').textContent = weekCount;
-        document.getElementById('activeUsers').textContent = uniqueUsers;
+            // Calculate deliverables (completed tasks and milestones)
+            const completedTasks = tasks.filter(t => t.status === 'done');
+            const completedMilestones = milestones.filter(m => m.status === 'completed');
+            const deliverableCount = completedTasks.length + completedMilestones.length;
 
-        // Update charts
-        this.updateCategoryChart(records);
-        this.updateUserChart(records);
-        this.updateTimelineChart(records);
+            // Calculate bottlenecks (blocked and overdue tasks)
+            const now = Date.now();
+            const blockedTasks = tasks.filter(t => t.status === 'blocked');
+            const overdueTasks = tasks.filter(t =>
+                t.status !== 'done' && t.dueDate && t.dueDate < now
+            );
+            const bottleneckCount = blockedTasks.length + overdueTasks.length;
+
+            // Calculate achievements
+            const achievementRecords = records.filter(r => r.category === 'achievement');
+            const achievementCount = achievementRecords.length + completedMilestones.length;
+
+            // Calculate overall progress
+            const progress = tasks.length > 0
+                ? Math.round((completedTasks.length / tasks.length) * 100)
+                : 0;
+
+            // Update stat cards
+            const deliverableEl = document.getElementById('deliverableCount');
+            const bottleneckEl = document.getElementById('bottleneckCount');
+            const achievementEl = document.getElementById('achievementCount');
+            const progressEl = document.getElementById('overallProgress');
+
+            if (deliverableEl) deliverableEl.textContent = deliverableCount;
+            if (bottleneckEl) bottleneckEl.textContent = bottleneckCount;
+            if (achievementEl) achievementEl.textContent = achievementCount;
+            if (progressEl) progressEl.textContent = `${progress}%`;
+
+            // Render sections
+            this.renderDeliverables(completedTasks, completedMilestones);
+            this.renderBottlenecks(blockedTasks, overdueTasks);
+            this.renderAchievements(achievementRecords, completedMilestones);
+
+            // Update charts
+            this.updateTaskStatusChart(tasks);
+            this.updateCategoryChart(records);
+            this.updateTimelineChart(records);
+        } catch (error) {
+            console.error('Error updating dashboard:', error);
+        }
+    }
+
+    renderDeliverables(tasks, milestones) {
+        const container = document.getElementById('deliverablesList');
+        if (!container) return;
+
+        const items = [
+            ...milestones.map(m => ({
+                type: 'milestone',
+                icon: '🎯',
+                title: m.name || m.title,
+                date: m.completedAt || m.updatedAt
+            })),
+            ...tasks.map(t => ({
+                type: 'task',
+                icon: '✅',
+                title: t.title,
+                date: t.updatedAt
+            }))
+        ].sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 10);
+
+        if (items.length === 0) {
+            container.innerHTML = '<p class="empty-message">No deliverables yet</p>';
+            return;
+        }
+
+        container.innerHTML = items.map(item => `
+            <div class="deliverable-item">
+                <span class="icon">${item.icon}</span>
+                <div class="item-details">
+                    <div class="item-title">${this.escapeHtml(item.title)}</div>
+                    <div class="item-meta">${item.type} - ${this.formatDate(item.date)}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    renderBottlenecks(blockedTasks, overdueTasks) {
+        const container = document.getElementById('bottlenecksList');
+        if (!container) return;
+
+        const items = [
+            ...blockedTasks.map(t => ({
+                type: 'blocked',
+                icon: '🚫',
+                title: t.title,
+                reason: 'Task is blocked',
+                priority: t.priority || 'medium'
+            })),
+            ...overdueTasks.filter(t => t.status !== 'blocked').map(t => ({
+                type: 'overdue',
+                icon: '⏰',
+                title: t.title,
+                reason: `Overdue since ${this.formatDate(t.dueDate)}`,
+                priority: t.priority || 'medium'
+            }))
+        ];
+
+        // Sort by priority (urgent > high > medium > low)
+        const priorityOrder = { urgent: 0, high: 1, medium: 2, low: 3 };
+        items.sort((a, b) => (priorityOrder[a.priority] || 2) - (priorityOrder[b.priority] || 2));
+
+        if (items.length === 0) {
+            container.innerHTML = '<p class="empty-message">No bottlenecks - great work!</p>';
+            return;
+        }
+
+        container.innerHTML = items.slice(0, 10).map(item => `
+            <div class="bottleneck-item ${item.type}">
+                <span class="icon">${item.icon}</span>
+                <div class="item-details">
+                    <div class="item-title">${this.escapeHtml(item.title)}</div>
+                    <div class="item-meta">${item.reason}</div>
+                </div>
+                <span class="priority-badge priority-${item.priority}">${item.priority}</span>
+            </div>
+        `).join('');
+    }
+
+    renderAchievements(achievementRecords, completedMilestones) {
+        const container = document.getElementById('achievementsList');
+        if (!container) return;
+
+        const items = [
+            ...completedMilestones.map(m => ({
+                icon: '🏆',
+                title: m.name || m.title,
+                description: 'Milestone completed',
+                date: m.completedAt || m.updatedAt
+            })),
+            ...achievementRecords.map(r => ({
+                icon: '⭐',
+                title: (r.textInput || 'Achievement').substring(0, 50),
+                description: `Reported by ${r.userName}`,
+                date: new Date(r.timestamp).getTime()
+            }))
+        ].sort((a, b) => (b.date || 0) - (a.date || 0)).slice(0, 10);
+
+        if (items.length === 0) {
+            container.innerHTML = '<p class="empty-message">No achievements recorded yet</p>';
+            return;
+        }
+
+        container.innerHTML = items.map(item => `
+            <div class="achievement-item">
+                <span class="icon">${item.icon}</span>
+                <div class="item-details">
+                    <div class="item-title">${this.escapeHtml(item.title)}</div>
+                    <div class="item-meta">${item.description}</div>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    updateTaskStatusChart(tasks) {
+        const statusCounts = {
+            'To Do': tasks.filter(t => t.status === 'todo').length,
+            'In Progress': tasks.filter(t => t.status === 'in-progress').length,
+            'Blocked': tasks.filter(t => t.status === 'blocked').length,
+            'Done': tasks.filter(t => t.status === 'done').length
+        };
+
+        this.drawPieChart('taskStatusChart', statusCounts, statusCounts, 'taskStatusLegend');
+    }
+
+    escapeHtml(text) {
+        if (!text) return '';
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    formatDate(timestamp) {
+        if (!timestamp) return 'Unknown';
+        const date = new Date(timestamp);
+        return date.toLocaleDateString();
     }
 
     updateCategoryChart(records) {
@@ -874,6 +1080,10 @@ class XteamApp {
 
             // Refresh the current view
             await this.projectManager.refreshCurrentView();
+
+            // Refresh records filtered by the new project
+            const filterByProject = document.getElementById('filterByProject')?.checked ?? true;
+            await this.loadRecords('', filterByProject);
 
             if (typeof Notification !== 'undefined') {
                 Notification.show('Project loaded', 'success');

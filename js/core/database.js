@@ -48,7 +48,7 @@ class Database {
 
     async initIndexedDB() {
         return new Promise((resolve, reject) => {
-            const request = indexedDB.open('XteamDB', 2); // Version 2 for new stores
+            const request = indexedDB.open('XteamDB', 3); // Version 3: add projectId to records
 
             request.onerror = () => reject(request.error);
             request.onsuccess = () => {
@@ -65,6 +65,13 @@ class Database {
                     recordsStore.createIndex('timestamp', 'timestamp', { unique: false });
                     recordsStore.createIndex('category', 'category', { unique: false });
                     recordsStore.createIndex('userName', 'userName', { unique: false });
+                    recordsStore.createIndex('projectId', 'projectId', { unique: false });
+                } else {
+                    // Add projectId index to existing records store if not present
+                    const recordsStore = event.target.transaction.objectStore('records');
+                    if (!recordsStore.indexNames.contains('projectId')) {
+                        recordsStore.createIndex('projectId', 'projectId', { unique: false });
+                    }
                 }
 
                 if (!db.objectStoreNames.contains('projects')) {
@@ -177,6 +184,34 @@ class Database {
                 request.onerror = () => reject(request.error);
             });
         }
+    }
+
+    async getRecordsByProject(projectId) {
+        if (this.useFirebase) {
+            const snapshot = await this.recordsRef.orderByChild('projectId').equalTo(projectId).once('value');
+            const records = [];
+            snapshot.forEach((childSnapshot) => {
+                records.push({
+                    id: childSnapshot.key,
+                    ...childSnapshot.val()
+                });
+            });
+            return records;
+        } else {
+            return new Promise((resolve, reject) => {
+                const transaction = this.localDB.transaction(['records'], 'readonly');
+                const objectStore = transaction.objectStore('records');
+                const index = objectStore.index('projectId');
+                const request = index.getAll(projectId);
+                request.onsuccess = () => resolve(request.result);
+                request.onerror = () => reject(request.error);
+            });
+        }
+    }
+
+    async getUnassignedRecords() {
+        const allRecords = await this.getAllRecords();
+        return allRecords.filter(r => !r.projectId);
     }
 
     // ============================================================

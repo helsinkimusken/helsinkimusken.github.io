@@ -82,7 +82,7 @@
         </header>
 
         <main class="dual-panel-layout">
-            <!-- LEFT PANEL: Project Management -->
+            <!-- TOP PANEL: Project Management -->
             <div class="panel panel-project">
                 <!-- Project Header -->
                 <div class="panel-header">
@@ -167,10 +167,15 @@
                 </div>
             </div>
 
-            <!-- RIGHT PANEL: Info Sharing (Existing) -->
+            <!-- BOTTOM PANEL: Info Sharing (Linked to Projects) -->
             <div class="panel panel-info">
-                <div class="panel-title">
+                <div class="panel-title info-sharing-header">
                     <h2><span class="icon">📤</span> Info Sharing</h2>
+                    <div class="project-indicator">
+                        <span class="icon">📂</span>
+                        <span>Project: </span>
+                        <span id="currentProjectName" class="no-project">No project selected</span>
+                    </div>
                 </div>
 
                 <div class="upload-section">
@@ -285,6 +290,10 @@
                 <div class="section-header">
                     <h2>Submitted Records</h2>
                     <div class="filter-controls">
+                        <label class="filter-toggle">
+                            <input type="checkbox" id="filterByProject" checked>
+                            <span>Project records only</span>
+                        </label>
                         <select id="filterCategory">
                             <option value="">All Categories</option>
                             <option value="vendor-performance">Vendor Performance</option>
@@ -308,42 +317,68 @@
             <!-- End of Right Panel -->
         </main>
 
-        <!-- Dashboard Section -->
+        <!-- Dashboard Section - Project Focused -->
         <section class="dashboard-section">
-            <h2>📊 Dashboard & Analytics</h2>
+            <h2>📊 Project Dashboard</h2>
 
+            <!-- Stats Grid - Project Focused -->
             <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-value" id="totalRecords">0</div>
-                    <div class="stat-label">Total Records</div>
+                <div class="stat-card stat-deliverables">
+                    <div class="stat-value" id="deliverableCount">0</div>
+                    <div class="stat-label">Deliverables Completed</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="todayRecords">0</div>
-                    <div class="stat-label">Today's Records</div>
+                <div class="stat-card stat-bottlenecks">
+                    <div class="stat-value" id="bottleneckCount">0</div>
+                    <div class="stat-label">Bottlenecks</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="weekRecords">0</div>
-                    <div class="stat-label">This Week</div>
+                <div class="stat-card stat-achievements">
+                    <div class="stat-value" id="achievementCount">0</div>
+                    <div class="stat-label">Achievements</div>
                 </div>
-                <div class="stat-card">
-                    <div class="stat-value" id="activeUsers">0</div>
-                    <div class="stat-label">Active Users</div>
+                <div class="stat-card stat-progress">
+                    <div class="stat-value" id="overallProgress">0%</div>
+                    <div class="stat-label">Overall Progress</div>
                 </div>
             </div>
 
+            <!-- Deliverables Section -->
+            <div class="dashboard-panel">
+                <h3>✅ Deliverables</h3>
+                <div id="deliverablesList" class="deliverable-list">
+                    <p class="empty-message">No deliverables yet</p>
+                </div>
+            </div>
+
+            <!-- Bottlenecks Section -->
+            <div class="dashboard-panel warning">
+                <h3>⚠️ Bottlenecks</h3>
+                <div id="bottlenecksList" class="bottleneck-list">
+                    <p class="empty-message">No bottlenecks - great work!</p>
+                </div>
+            </div>
+
+            <!-- Achievements Section -->
+            <div class="dashboard-panel success">
+                <h3>🏆 Achievements</h3>
+                <div id="achievementsList" class="achievement-list">
+                    <p class="empty-message">No achievements recorded yet</p>
+                </div>
+            </div>
+
+            <!-- Charts Grid -->
             <div class="charts-grid">
+                <div class="chart-card">
+                    <h3>Tasks by Status</h3>
+                    <canvas id="taskStatusChart"></canvas>
+                    <div id="taskStatusLegend" class="chart-legend"></div>
+                </div>
                 <div class="chart-card">
                     <h3>Records by Category</h3>
                     <canvas id="categoryChart"></canvas>
                     <div id="categoryLegend" class="chart-legend"></div>
                 </div>
-                <div class="chart-card">
-                    <h3>Records by User</h3>
-                    <canvas id="userChart"></canvas>
-                    <div id="userLegend" class="chart-legend"></div>
-                </div>
                 <div class="chart-card full-width">
-                    <h3>Records Over Time (Last 7 Days)</h3>
+                    <h3>Progress Over Time (Last 7 Days)</h3>
                     <canvas id="timelineChart"></canvas>
                 </div>
             </div>

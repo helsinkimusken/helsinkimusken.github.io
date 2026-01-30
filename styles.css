@@ -264,6 +264,70 @@ h2 {
     font-size: 0.9rem;
 }
 
+/* Project Indicator in Info Sharing Panel */
+.info-sharing-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.info-sharing-header h2 {
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+.project-indicator {
+    background: rgba(37, 99, 235, 0.1);
+    padding: 8px 15px;
+    border-radius: 20px;
+    font-size: 0.9rem;
+    color: var(--primary-color);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.project-indicator .icon {
+    font-size: 1rem;
+}
+
+#currentProjectName {
+    font-weight: 600;
+}
+
+#currentProjectName.no-project {
+    color: var(--text-secondary);
+    font-style: italic;
+}
+
+/* Filter Toggle */
+.filter-toggle {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+    padding: 6px 12px;
+    background: var(--background-color);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+}
+
+.filter-toggle input[type="checkbox"] {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: var(--primary-color);
+}
+
+.filter-toggle:hover {
+    background: rgba(37, 99, 235, 0.05);
+    border-color: var(--primary-color);
+}
+
 .records-list {
     max-height: 800px;
     overflow-y: auto;
@@ -456,6 +520,137 @@ h2 {
     opacity: 0.9;
     text-transform: uppercase;
     letter-spacing: 1px;
+}
+
+/* Stat Card Variants */
+.stat-card.stat-deliverables {
+    background: linear-gradient(135deg, var(--success-color), #059669);
+}
+
+.stat-card.stat-bottlenecks {
+    background: linear-gradient(135deg, var(--warning-color), #d97706);
+}
+
+.stat-card.stat-achievements {
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.stat-card.stat-progress {
+    background: linear-gradient(135deg, var(--primary-color), #1e40af);
+}
+
+/* Dashboard Panels */
+.dashboard-panel {
+    background: var(--background-color);
+    padding: 25px;
+    border-radius: 12px;
+    margin-bottom: 25px;
+    border: 2px solid var(--border-color);
+}
+
+.dashboard-panel.warning {
+    border-color: var(--warning-color);
+    background: rgba(245, 158, 11, 0.05);
+}
+
+.dashboard-panel.success {
+    border-color: var(--success-color);
+    background: rgba(16, 185, 129, 0.05);
+}
+
+.dashboard-panel h3 {
+    margin: 0 0 15px 0;
+    font-size: 1.25rem;
+    color: var(--text-primary);
+}
+
+/* Deliverable/Bottleneck/Achievement Items */
+.deliverable-item,
+.bottleneck-item,
+.achievement-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 15px;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    border: 1px solid var(--border-color);
+    gap: 12px;
+}
+
+.deliverable-item .icon,
+.bottleneck-item .icon,
+.achievement-item .icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+}
+
+.item-details {
+    flex: 1;
+    min-width: 0;
+}
+
+.item-title {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.item-meta {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.bottleneck-item {
+    border-left: 4px solid var(--warning-color);
+}
+
+.bottleneck-item.overdue {
+    border-left-color: var(--danger-color);
+}
+
+.bottleneck-item.blocked {
+    border-left-color: #6b7280;
+}
+
+/* Priority Badges */
+.priority-badge {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    flex-shrink: 0;
+}
+
+.priority-badge.priority-low {
+    background: #e5e7eb;
+    color: #6b7280;
+}
+
+.priority-badge.priority-medium {
+    background: #fef3c7;
+    color: #d97706;
+}
+
+.priority-badge.priority-high {
+    background: #fee2e2;
+    color: #dc2626;
+}
+
+.priority-badge.priority-urgent {
+    background: #dc2626;
+    color: white;
+}
+
+/* Empty Message */
+.empty-message {
+    color: var(--text-secondary);
+    font-style: italic;
+    text-align: center;
+    padding: 20px;
 }
 
 .charts-grid {
