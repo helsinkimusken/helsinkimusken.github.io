@@ -34,6 +34,7 @@ class XteamApp {
     constructor() {
         this.db = new Database();
         this.projectManager = null; // Will be initialized after DB
+        this.collaborationView = null;
         this.uploadedFiles = {
             photos: [],
             files: [],
@@ -53,6 +54,12 @@ class XteamApp {
                 this.projectManager = new ProjectManager(this.db);
                 await this.projectManager.init();
                 console.log('✓ ProjectManager initialized');
+            }
+
+            // Initialize Collaboration View (activities dashboard)
+            if (typeof CollaborationView !== 'undefined') {
+                this.collaborationView = new CollaborationView(this.projectManager);
+                console.log('✓ CollaborationView initialized');
             }
 
             this.setupEventListeners();
@@ -1016,6 +1023,13 @@ class XteamApp {
                 const projectId = e.target.value;
                 if (projectId) {
                     await this.selectProject(projectId);
+                } else {
+                    // No project selected - clear the indicator
+                    if (this.projectManager) {
+                        this.projectManager.currentProject = null;
+                    }
+                    this.updateProjectIndicator();
+                    this.loadRecords('', false); // Show all records
                 }
             });
         }
@@ -1033,6 +1047,21 @@ class XteamApp {
         if (newTaskBtn) {
             newTaskBtn.addEventListener('click', () => {
                 this.showNewTaskModal();
+            });
+        }
+
+        // New activity button (Collaboration tab)
+        const newActivityBtn = document.getElementById('newActivityBtn');
+        if (newActivityBtn) {
+            newActivityBtn.addEventListener('click', () => {
+                this.showNewTaskModal(true);
+            });
+        }
+
+        const refreshCollabBtn = document.getElementById('refreshCollabBtn');
+        if (refreshCollabBtn) {
+            refreshCollabBtn.addEventListener('click', async () => {
+                await this.renderCollaborationDashboard();
             });
         }
 
@@ -1065,6 +1094,12 @@ class XteamApp {
                 });
 
                 console.log(`✓ Loaded ${projects.length} projects`);
+
+                // Auto-select the first project if available
+                if (projects.length > 0) {
+                    projectSelector.value = projects[0].id;
+                    await this.selectProject(projects[0].id);
+                }
             }
         } catch (error) {
             console.error('Failed to load projects:', error);
@@ -1078,8 +1113,18 @@ class XteamApp {
             await this.projectManager.setCurrentProject(projectId);
             console.log('✓ Project selected:', projectId);
 
+            // Update project indicator immediately
+            this.updateProjectIndicator();
+
             // Refresh the current view
             await this.projectManager.refreshCurrentView();
+
+            // If collaboration tab is active, refresh dashboard
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            const activeTab = activeTabBtn?.dataset?.tab;
+            if (activeTab === 'collaboration') {
+                await this.renderCollaborationDashboard();
+            }
 
             // Refresh records filtered by the new project
             const filterByProject = document.getElementById('filterByProject')?.checked ?? true;
@@ -1114,7 +1159,24 @@ class XteamApp {
             activeTab.style.display = 'flex';
         }
 
+        // Render collaboration dashboard on entry
+        if (tabName === 'collaboration') {
+            this.renderCollaborationDashboard();
+        }
+
         console.log('✓ Switched to tab:', tabName);
+    }
+
+    async renderCollaborationDashboard() {
+        try {
+            if (!this.collaborationView) return;
+            await this.collaborationView.render();
+        } catch (error) {
+            console.error('Failed to render collaboration dashboard:', error);
+            if (typeof Notification !== 'undefined') {
+                Notification.show('Failed to render collaboration dashboard', 'error');
+            }
+        }
     }
 
     async switchView(viewType) {
@@ -1169,16 +1231,134 @@ class XteamApp {
         }
     }
 
-    showNewTaskModal() {
+    showNewTaskModal(isActivity = false) {
         if (!this.projectManager || !this.projectManager.currentProject) {
             alert('Please select a project first');
             return;
         }
 
-        // Temporary simple prompt (will be replaced with proper modal)
-        const taskTitle = prompt('Enter task title:');
-        if (taskTitle && taskTitle.trim()) {
-            this.createTask(taskTitle.trim());
+        // Create modal HTML
+        const currentUser = window.authManager?.currentUser?.email || '';
+        const today = new Date().toISOString().split('T')[0];
+
+        const aspectOptions = [
+            { key: 'business', label: 'Business' },
+            { key: 'program', label: 'Program' },
+            { key: 'docs-tools', label: 'Docs & Tools' },
+            { key: 'design-dev', label: 'Design & Dev' },
+            { key: 'logistics', label: 'Logistics' }
+        ];
+
+        const aspectSelect = `
+            <div class="form-group">
+                <label for="taskAspect">Aspect</label>
+                <select id="taskAspect">
+                    ${aspectOptions.map(o => `<option value="${o.key}" ${o.key === 'program' ? 'selected' : ''}>${o.label}</option>`).join('')}
+                </select>
+                <div class="hint" style="margin-top: 6px; color: #64748b; font-size: 0.8rem;">
+                    Use Aspect to group activities (recommended for Biz-Plan-AAC collaboration projects).
+                </div>
+            </div>
+        `;
+
+        const modalHTML = `
+            <div class="modal-overlay" id="taskModal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3>${isActivity ? 'Create New Activity' : 'Create New Task'}</h3>
+                        <button class="modal-close" onclick="document.getElementById('taskModal').remove()">&times;</button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="taskTitle">${isActivity ? 'Activity Title *' : 'Task Title *'}</label>
+                            <input type="text" id="taskTitle" placeholder="${isActivity ? 'Enter activity title' : 'Enter task title'}" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="taskDescription">Description</label>
+                            <textarea id="taskDescription" placeholder="Enter description (optional)"></textarea>
+                        </div>
+                        ${aspectSelect}
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskOwner">Owner (Responsible)</label>
+                                <input type="email" id="taskOwner" placeholder="owner@email.com" value="${currentUser}">
+                            </div>
+                            <div class="form-group">
+                                <label for="taskPriority">Priority</label>
+                                <select id="taskPriority">
+                                    <option value="low">Low</option>
+                                    <option value="medium" selected>Medium</option>
+                                    <option value="high">High</option>
+                                    <option value="urgent">Urgent</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label for="taskStartDate">Start Date</label>
+                                <input type="date" id="taskStartDate" value="${today}">
+                            </div>
+                            <div class="form-group">
+                                <label for="taskDueDate">Due Date (Planned End)</label>
+                                <input type="date" id="taskDueDate">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button class="btn btn-secondary" onclick="document.getElementById('taskModal').remove()">Cancel</button>
+                        <button class="btn btn-primary" onclick="window.xteamApp.submitNewTask()">Create Task</button>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        document.getElementById('taskTitle').focus();
+    }
+
+    async submitNewTask() {
+        const title = document.getElementById('taskTitle').value.trim();
+        const description = document.getElementById('taskDescription').value.trim();
+        const owner = document.getElementById('taskOwner').value.trim();
+        const priority = document.getElementById('taskPriority').value;
+        const startDateStr = document.getElementById('taskStartDate').value;
+        const dueDateStr = document.getElementById('taskDueDate').value;
+        const aspect = document.getElementById('taskAspect')?.value || 'program';
+
+        if (!title) {
+            alert('Please enter a task title');
+            return;
+        }
+
+        const taskData = {
+            title,
+            description,
+            owner: owner || (window.authManager?.currentUser?.email || 'unknown'),
+            priority,
+            aspect,
+            startDate: startDateStr ? new Date(startDateStr).getTime() : Date.now(),
+            dueDate: dueDateStr ? new Date(dueDateStr + 'T23:59:59').getTime() : null,
+            status: 'todo'
+        };
+
+        try {
+            const taskId = await this.projectManager.createTask(taskData);
+            console.log('✓ Task created:', taskId);
+
+            // Close modal
+            document.getElementById('taskModal').remove();
+
+            // Refresh the view
+            await this.projectManager.refreshCurrentView();
+
+            // Refresh collaboration dashboard if visible
+            const activeTabBtn = document.querySelector('.tab-btn.active');
+            if (activeTabBtn?.dataset?.tab === 'collaboration') {
+                await this.renderCollaborationDashboard();
+            }
+        } catch (error) {
+            console.error('Failed to create task:', error);
+            alert('Failed to create task: ' + error.message);
         }
     }
 
@@ -1245,16 +1425,42 @@ class XteamApp {
         const task = await this.projectManager.db.getTask(taskId);
         if (!task) return;
 
+        const agingDays = task.startDate ? Math.ceil((Date.now() - task.startDate) / (1000 * 60 * 60 * 24)) : 0;
+
         const details = `
 Task: ${task.title}
 Description: ${task.description || 'No description'}
 Status: ${task.status}
 Priority: ${task.priority}
 Progress: ${task.progress}%
+
+Creator: ${task.createdBy || 'Unknown'}
+Owner: ${task.owner || 'Not assigned'}
 Assigned to: ${task.assignedTo || 'Unassigned'}
-Created by: ${task.createdBy}
+
+Created: ${task.createdAt ? new Date(task.createdAt).toLocaleString() : 'Unknown'}
+Start Date: ${task.startDate ? new Date(task.startDate).toLocaleDateString() : 'Not set'}
+Due Date: ${task.dueDate ? new Date(task.dueDate).toLocaleDateString() : 'Not set'}
+Aging: ${agingDays} days since start
         `;
         alert(details.trim());
+    }
+
+    async changeTaskStatus(taskId, newStatus) {
+        if (!this.projectManager) return;
+
+        try {
+            await this.projectManager.moveTask(taskId, newStatus);
+            console.log(`✓ Task status changed to: ${newStatus}`);
+
+            // Refresh the view
+            await this.projectManager.refreshCurrentView();
+        } catch (error) {
+            console.error('Failed to change task status:', error);
+            if (typeof Notification !== 'undefined') {
+                Notification.show('Failed to change status', 'error');
+            }
+        }
     }
 
     async showCriticalPath() {

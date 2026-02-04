@@ -29,10 +29,11 @@ class TaskHandler {
                 description: taskData.description || '',
                 status: taskData.status || 'todo',
                 priority: taskData.priority || 'medium',
-                assignedTo: taskData.assignedTo || '',
                 createdBy: currentUser,
-                dueDate: taskData.dueDate || null,
-                startDate: taskData.startDate || null,
+                owner: taskData.owner || currentUser, // Task owner - who must deliver the result
+                assignedTo: taskData.assignedTo || '', // Current assignee working on it
+                dueDate: taskData.dueDate || null, // Planned end date
+                startDate: taskData.startDate || Date.now(), // Start date (default to now)
                 completedDate: null,
                 progress: taskData.progress || 0,
                 estimatedHours: taskData.estimatedHours || 0,

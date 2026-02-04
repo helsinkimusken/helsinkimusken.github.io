@@ -279,6 +279,132 @@
 }
 
 /* ============================================================
+   Task Meta Section (Creator, Owner, Dates)
+   ============================================================ */
+
+.task-meta-section {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin: 8px 0;
+    padding: 8px;
+    background: #f8fafc;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+
+.task-meta-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #64748b;
+}
+
+.task-meta-item .meta-label {
+    font-weight: 600;
+    color: #475569;
+    min-width: 55px;
+}
+
+.task-meta-item.task-owner {
+    color: #2563eb;
+    font-weight: 500;
+}
+
+/* ============================================================
+   Task Aging Display
+   ============================================================ */
+
+.task-aging {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 0.8rem;
+    padding: 4px 8px;
+    border-radius: 12px;
+    font-weight: 600;
+}
+
+.task-aging .icon {
+    font-size: 0.9rem;
+}
+
+.task-aging.aging-ok {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.task-aging.aging-warning {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.task-aging.aging-critical {
+    background: #fee2e2;
+    color: #991b1b;
+}
+
+/* ============================================================
+   Status Change Buttons
+   ============================================================ */
+
+.task-status-buttons {
+    display: flex;
+    gap: 4px;
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
+    justify-content: space-between;
+}
+
+.status-btn {
+    flex: 1;
+    padding: 6px 4px;
+    border: 2px solid #e5e7eb;
+    border-radius: 6px;
+    background: white;
+    cursor: pointer;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+    opacity: 0.5;
+}
+
+.status-btn:hover {
+    border-color: var(--status-color);
+    background: rgba(0, 0, 0, 0.02);
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+.status-btn.active {
+    border-color: var(--status-color);
+    background: var(--status-color);
+    opacity: 1;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
+}
+
+.status-btn.active:hover {
+    transform: none;
+}
+
+/* Status-specific button styles when active */
+.status-btn[data-status="todo"].active {
+    color: white;
+}
+
+.status-btn[data-status="in-progress"].active {
+    color: white;
+}
+
+.status-btn[data-status="blocked"].active {
+    color: white;
+}
+
+.status-btn[data-status="done"].active {
+    color: white;
+}
+
+/* ============================================================
    Scrollbar Styling
    ============================================================ */
 

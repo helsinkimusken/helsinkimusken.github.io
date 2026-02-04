@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="css/project-management.css">
     <link rel="stylesheet" href="css/kanban.css">
+    <link rel="stylesheet" href="css/collaboration.css">
     <link rel="stylesheet" href="libs/frappe-gantt.min.css">
     <link rel="stylesheet" href="css/gantt.css">
 </head>
@@ -99,6 +100,9 @@
                     <button class="tab-btn active" data-tab="tasks">
                         <span class="icon">📋</span> Tasks
                     </button>
+                    <button class="tab-btn" data-tab="collaboration">
+                        <span class="icon">🤝</span> Collaboration
+                    </button>
                     <button class="tab-btn" data-tab="materials">
                         <span class="icon">📦</span> Materials
                     </button>
@@ -135,6 +139,31 @@
                             <p class="icon">📋</p>
                             <p>Select a project to view tasks</p>
                             <p class="hint">Create a new project or select an existing one from the dropdown above</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Collaboration Tab -->
+                <div id="collaborationTab" class="tab-content" style="display: none;">
+                    <div class="collab-header">
+                        <div class="collab-title">
+                            <h3>Activities Dashboard</h3>
+                            <p class="hint">Grouped by collaboration aspect (Business, Program, Docs/Tools, Design/Dev, Logistics)</p>
+                        </div>
+                        <div class="collab-actions">
+                            <button id="newActivityBtn" class="btn btn-primary btn-sm">
+                                <span class="icon">+</span> New Activity
+                            </button>
+                            <button id="refreshCollabBtn" class="btn btn-secondary btn-sm" title="Refresh dashboard">
+                                <span class="icon">🔄</span> Refresh
+                            </button>
+                        </div>
+                    </div>
+                    <div id="collaborationDashboard" class="collab-dashboard">
+                        <div class="empty-state">
+                            <p class="icon">🤝</p>
+                            <p>Select a project to view collaboration activities</p>
+                            <p class="hint">Use the project selector above to choose your collaboration project</p>
                         </div>
                     </div>
                 </div>
@@ -422,6 +451,7 @@
     <!-- View Modules -->
     <script src="js/views/kanban-view.js"></script>
     <script src="js/views/gantt-view.js"></script>
+    <script src="js/views/collaboration-view.js"></script>
 
     <!-- Main Application -->
     <script src="app.js"></script>

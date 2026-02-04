@@ -7,7 +7,7 @@
 
 .dual-panel-layout {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr !important;
     grid-template-rows: minmax(400px, auto) minmax(300px, auto);
     gap: 30px;
     max-width: 1400px;

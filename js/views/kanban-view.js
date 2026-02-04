@@ -98,14 +98,53 @@ class KanbanView {
     renderTaskCard(task) {
         const priorityClass = `priority-${task.priority || 'medium'}`;
         const priorityIcon = this.getPriorityIcon(task.priority);
+
+        const aspectBadge = task.aspect ?
+            `<span class="task-badge" title="Aspect: ${this.escapeHtml(task.aspect)}">
+                <span class="icon">🤝</span> ${this.escapeHtml(task.aspect)}
+            </span>` : '';
+
+        // Creator and Owner info - owner defaults to creator if not set
+        const effectiveOwner = task.owner || task.createdBy;
+
+        const creatorDisplay = task.createdBy ?
+            `<div class="task-meta-item" title="Created by: ${task.createdBy}">
+                <span class="meta-label">Creator:</span> ${this.getShortName(task.createdBy)}
+            </div>` : '';
+
+        const ownerDisplay = effectiveOwner ?
+            `<div class="task-meta-item task-owner" title="Owner: ${effectiveOwner}">
+                <span class="meta-label">Owner:</span> ${this.getShortName(effectiveOwner)}
+            </div>` : '';
+
         const assigneeDisplay = task.assignedTo ?
             `<div class="task-assignee" title="Assigned to: ${task.assignedTo}">
                 <span class="icon">👤</span> ${this.getShortName(task.assignedTo)}
             </div>` : '';
 
+        // Date displays - use createdAt as fallback for startDate
+        const effectiveStartDate = task.startDate || task.createdAt;
+
+        const createdDateDisplay = task.createdAt ?
+            `<div class="task-meta-item" title="Created: ${this.formatFullDate(task.createdAt)}">
+                <span class="meta-label">Created:</span> ${this.formatDate(task.createdAt)}
+            </div>` : '';
+
+        const startDateDisplay = effectiveStartDate ?
+            `<div class="task-meta-item" title="Start: ${this.formatFullDate(effectiveStartDate)}">
+                <span class="meta-label">Start:</span> ${this.formatDate(effectiveStartDate)}
+            </div>` : '';
+
         const dueDateDisplay = task.dueDate ?
             `<div class="task-due-date ${this.isDueOverdue(task.dueDate) ? 'overdue' : ''}">
                 <span class="icon">📅</span> ${this.formatDate(task.dueDate)}
+            </div>` : '';
+
+        // Aging days calculation - use createdAt as fallback
+        const agingDays = this.calculateAgingDays(effectiveStartDate);
+        const agingDisplay = effectiveStartDate && task.status !== 'done' ?
+            `<div class="task-aging ${this.getAgingClass(agingDays)}" title="Days since start">
+                <span class="icon">⏱️</span> ${agingDays}d
             </div>` : '';
 
         const progressBar = task.progress > 0 ?
@@ -118,6 +157,9 @@ class KanbanView {
                 <span class="icon">🔗</span> ${task.dependencies.length}
             </span>` : '';
 
+        // Status change buttons
+        const statusButtons = this.renderStatusButtons(task);
+
         return `
             <div class="task-card ${priorityClass}"
                  draggable="true"
@@ -129,14 +171,71 @@ class KanbanView {
                 </div>
                 <div class="task-card-title">${this.escapeHtml(task.title)}</div>
                 ${task.description ? `<div class="task-card-description">${this.escapeHtml(task.description)}</div>` : ''}
+
+                <div class="task-meta-section">
+                    ${creatorDisplay}
+                    ${ownerDisplay}
+                    ${createdDateDisplay}
+                    ${startDateDisplay}
+                </div>
+
                 ${progressBar}
+
                 <div class="task-card-footer">
                     ${assigneeDisplay}
                     ${dueDateDisplay}
+                    ${agingDisplay}
+                    ${aspectBadge}
                     ${dependencyBadge}
                 </div>
+
+                ${statusButtons}
             </div>
         `;
+    }
+
+    renderStatusButtons(task) {
+        const statuses = [
+            { key: 'todo', label: 'To Do', icon: '📝', color: '#6b7280' },
+            { key: 'in-progress', label: 'In Progress', icon: '🔄', color: '#3b82f6' },
+            { key: 'blocked', label: 'Blocked', icon: '🚫', color: '#ef4444' },
+            { key: 'done', label: 'Done', icon: '✅', color: '#10b981' }
+        ];
+
+        const buttons = statuses.map(s => {
+            const isActive = task.status === s.key;
+            return `<button
+                class="status-btn ${isActive ? 'active' : ''}"
+                data-status="${s.key}"
+                onclick="window.xteamApp.changeTaskStatus('${task.id}', '${s.key}')"
+                title="${s.label}"
+                style="--status-color: ${s.color}">
+                ${s.icon}
+            </button>`;
+        }).join('');
+
+        return `<div class="task-status-buttons">${buttons}</div>`;
+    }
+
+    calculateAgingDays(startDate) {
+        if (!startDate) return 0;
+        const start = new Date(startDate);
+        const now = new Date();
+        const diffTime = Math.abs(now - start);
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return diffDays;
+    }
+
+    getAgingClass(days) {
+        if (days <= 3) return 'aging-ok';
+        if (days <= 7) return 'aging-warning';
+        return 'aging-critical';
+    }
+
+    formatFullDate(timestamp) {
+        if (!timestamp) return '';
+        const date = new Date(timestamp);
+        return date.toLocaleString();
     }
 
     // ============================================================
