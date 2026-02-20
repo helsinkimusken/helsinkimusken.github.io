@@ -1,0 +1,29 @@
+{
+  "rules": {
+    "records": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["projectId", "timestamp", "category"]
+    },
+    "projects": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["createdAt", "status"]
+    },
+    "tasks": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["projectId", "status", "dueDate"]
+    },
+    "materials": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["taskId", "status"]
+    },
+    "milestones": {
+      ".read": "auth != null",
+      ".write": "auth != null",
+      ".indexOn": ["projectId"]
+    }
+  }
+}
